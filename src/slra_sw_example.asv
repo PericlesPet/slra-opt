@@ -1,23 +1,26 @@
 %% simulation parameters
 clear all, randn('seed', 0), rand('seed', 0), warning off
-m = 3;          % Inputs
-p = 3;          % Outputs
-ell = 3;        % l time-horizon / dynamics                                                                                                  
+m = 2;          % Inputs
+p = 2;          % Outputs
+ell = 2;        % l time-horizon / dynamics                                                                                                  
 n = ell * p;    % STATES -> outputs (X) * dynamics
 q = m + p;      % w Vector size (INPUTS + OUTPUTS)
 
-%% TOTAL MATRIX ELEMENTS
-% n = l*p   STATES
-% m         INPUTS
-% p         OUTPUTS
-% A -> n * n    
-% B -> m * n
-% C -> n * p
-% D -> m * p
-% TOTAL: (n+m)*(p+n)
-total_elem = (n+m)*
-T = 1000;     % Samples
-s = 0.03;     % Noise Variation
+% %% TOTAL MATRIX ELEMENTS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%    n = l*p   STATES           %%%
+%%%%    m         INPUTS           %%%
+%%%%    p         OUTPUTS          %%%
+%%%%    A -> n * n                 %%%
+%%%%    B -> m * n                 %%%
+%%%%    C -> n * p                 %%%
+%%%%    D -> m * p                 %%%
+%%%%    TOTAL: (n+m)*(p+n)         %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+total_elem = (n+m)*(p+n);
+% %% SAMPLES, NOISE
+T = 50*total_elem;     % Samples
+s = 0.10;     % Noise Variation
 opt_oe.exct = 1:m;      % fixed inputs = output error identification
 opt_eiv.exct = [];      % errors-in-variables setup 
 %% generate data
@@ -25,38 +28,33 @@ opt_eiv.exct = [];      % errors-in-variables setup
 % Generate a discrete LTI system with:
 % n STATES --- p OUTPUTS --- m INPUTS.
 sys0 = drss(n, p, m);        % random "true" system
-u0 = rand(T, m); 
+
+% RANDOM INPUT AND X_INIT
+u0 = rand(T, m);        
 xini0 = rand(n, 1);          % random "true" trajectory
 
 % Y 
 y0 = lsim(sys0, u0, [], xini0); 
-u = u0;       
 yt = randn(T, p); 
 y = y0 + s * norm(y0) * yt / norm(yt); % output error
+u = u0;       
 
 w0 = [u0 y0]; 
 w = [u y];
 
-%% compare ident (and pem)
-profile on
-
-
+%% compare ident
+% profile on
+% profiler_data = profile('info');
+%   GET IDENT SOLUTION
 tic, sysh_ident = ident(w, m, ell, opt_oe); t_ident = toc;
 
-profiler_data = profile('info');
-t_ident
-% tic, sysh_pem = pem(iddata(y, u), n); t_pem = toc;
-% [Yh, M] = compare(iddata(y, u), idss(sysh_ident), sysh_pem); 
-%%
-figure
-compare(iddata(y, u), idss(sysh_ident)); 
-% ans = [t_ident; t_pem]
-ans = [t_ident]
+sys_comparison(u, y, sysh_ident, t_ident)
 
+%% STEP RESPONSES
 
-%%
-t = 1:1:3;
+systems.sys1 = 
 figure
+t = 1:1:100;
 step(sys0,t)
 hold on
 step(sysh_ident,t)
@@ -66,21 +64,6 @@ legend('real system', 'IDed system')
 % step(sysh_pem)
 
 
+fns = fieldnames(A);
+A.(fns{3})
 
-
-
-
-%% simulate step response data
-ys0 = step(sys0);       %Step Response of sys0
-Ts = length(ys0);        
-us = ones(Ts, m);       % Step Input
-yt = randn(Ts, p); 
-ys = ys0 + s * norm(ys0) * yt / norm(yt);       % Noisy
-
-opt_oe.w0 = 0; opt_oe.sys0 = sys0; 
-[sysh, info, wh] = ident([us ys], m, ell, opt_oe);
-
-% PLOT
-figure;
-plot(1:Ts, ys0, '-r', 1:Ts, ys, ':k', 1:Ts, wh(:, end), '--b')
-legend('true', 'noisy', 'approx.   .')

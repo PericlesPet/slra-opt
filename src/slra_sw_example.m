@@ -1,7 +1,7 @@
 %% simulation parameters
 clear all, randn('seed', 0), rand('seed', 0), warning off
-m = 3;          % Inputs
-p = 3;          % Outputs
+m = 2;          % Inputs
+p = 2;          % Outputs
 ell = 2;        % l time-horizon / dynamics                                                                                                  
 n = ell * p;    % STATES -> outputs (X) * dynamics
 q = m + p;      % w Vector size (INPUTS + OUTPUTS)
@@ -20,7 +20,7 @@ q = m + p;      % w Vector size (INPUTS + OUTPUTS)
 total_elem = (n+m)*(p+n);
 % %% SAMPLES, NOISE
 T = 50*total_elem;     % Samples
-s = 0.001;     % Noise Variation
+s = 0.10;     % Noise Variation
 opt_oe.exct = 1:m;      % fixed inputs = output error identification
 opt_eiv.exct = [];      % errors-in-variables setup 
 %% generate data
@@ -28,37 +28,42 @@ opt_eiv.exct = [];      % errors-in-variables setup
 % Generate a discrete LTI system with:
 % n STATES --- p OUTPUTS --- m INPUTS.
 sys0 = drss(n, p, m);        % random "true" system
-u0 = rand(T, m); 
+
+% RANDOM INPUT AND X_INIT
+u0 = rand(T, m);        
 xini0 = rand(n, 1);          % random "true" trajectory
 
 % Y 
 y0 = lsim(sys0, u0, [], xini0); 
-u = u0;       
 yt = randn(T, p); 
 y = y0 + s * norm(y0) * yt / norm(yt); % output error
+u = u0;       
 
 w0 = [u0 y0]; 
 w = [u y];
 
 %% compare ident
-profile on
+% profile on
+% profiler_data = profile('info');
+%   GET IDENT SOLUTION
 tic, sysh_ident = ident(w, m, ell, opt_oe); t_ident = toc;
-profiler_data = profile('info');
-% [Yh, M] = compare(iddata(y, u), idss(sysh_ident), sysh_pem); 
-figure
-compare(iddata(y, u), idss(sysh_ident)); 
-[Yh, M] = compare(iddata(y, u), idss(sysh_ident)); 
-t_ident 
-M
+
+%   GET KUNG REALIZATION SOLUTION
+tic, sysh_kung = w2h2ss(w, m, n); t_kung = toc;
+
+
+
+%%
+sys_comparison(u, y, sysh_ident, t_ident)
+sys_comparison(u, y, sysh_kung, t_ident)
 
 %% STEP RESPONSES
-figure
-t = 1:1:100;
-step(sys0,t)
-hold on
-step(sysh_ident,t)
-% step(sysh_pem)
-% legend('real system', 'IDed system', 'PEM')
-legend('real system', 'IDed system')
-% step(sysh_pem)
+% Gather All Systems Into a Struct
+systems.sys0 = sys0;
+systems.sys1 = sysh_ident;
+systems.sys2 = sysh_kung;
+
+% Plot Step Responses
+systems_step_responses(systems)
+
 
