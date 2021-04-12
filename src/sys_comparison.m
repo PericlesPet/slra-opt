@@ -4,9 +4,11 @@ figure
 compare(iddata(y, u), idss(sys_ID)); 
 [Yh, M] = compare(iddata(y, u), idss(sys_ID)); 
 
+if nargin>3    
+    X = sprintf('Time: %f\n', t_id);
+    disp(X)
+end
 
-X = sprintf('Time: %f\n', t_id);
-disp(X)
 X = sprintf('Accuracy : %f\n', M);
 disp(X)
 
