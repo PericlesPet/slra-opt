@@ -1,19 +1,18 @@
+% COMPARE VARIOUS SOLUTIONS TO IDENTIFICATION PROBLEM
+% SPECIFICALLY COMPARE BETWEEN R MATRICES
+
 % From INITIAL SYSTEM
 R = ss2r(sys0);
-
 % From IDENT with 'm' solver
 Rh = ss2r(sysh_ident);
-
 % From KUNG REALIZATION
 Rkung = ss2r(sysh_kung);
-
 % From SLRA_MEX_OBJ('Optimize')
 Ropt = info.Rh;
 
-
 [R ; Rh ; Rkung ; Ropt]
 
-%% RESIDUALS
+%% RESIDUALS (Distance from Constraint : (R*R' - I = 0)
 
 [C(R) ; C(Rh) ; C(Rkung) ; C(Ropt)]
 

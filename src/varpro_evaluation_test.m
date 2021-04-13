@@ -1,6 +1,6 @@
 % Perform up to "Data Generation" of slra_sw_example
 
-[w, s, r, opt, q, N, T] = ident_preprocessing(w, m, ell, opt_oe);
+[w, s, r, opt, q, N, T] = ident_preprocessing(w, m_in, ell, opt_oe);
 %%
 p = w2p(w);
 R = ss2r(sys0); 
