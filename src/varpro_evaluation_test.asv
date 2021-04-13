@@ -1,12 +1,10 @@
+% Perform up to "Data Generation" of slra_sw_example
 
-% Perform up to Data Generation of slra_sw_example
-% 
-
-[w, s, r, opt, q, N, T] = ident_preprocessing(w, m, ell, opt_oe);
+[w, s, r, opt, q, N, T] = ident_preprocessing(w, m_in, ell, opt_oe);
 %%
 p = w2p(w);
-
 R = ss2r(sys0); 
+
 %%
 % tts  - structure specification S(p) = phi * (s0 + p(tts)) 
 [tts, p, r, w, Rini, phi ,psi, opt, th2R, C, s0] = slra_to_slraext(p, s, r, opt);
@@ -17,6 +15,8 @@ R = ss2r(sys0);
  
   
 %% SLRA HANDLERS
+
+[opt | Im, q, np, s, N, n, p, | mp, 
 
 for missing_data = 1
     
@@ -61,9 +61,10 @@ R = info.Rh;
 % Rin = ones(size(R));
 Rin = Rini;
 %%
-% 
+% Gradient Stepsize Parameter
 gamma = 0.0005;
 
+% Regularizer Parameter
 opt.g = norm(p(Ig)) ^ 2;
 mu = opt.g;
 
@@ -73,11 +74,12 @@ for ii = 1:100
 %%
 f = slra_mex_obj('func', obj, Rin);
 % f = slra_mex_obj('func', obj, R);
+
 regulariz0r = norm(Rin * Rin' - eye(size(Rin*Rin')),'fro')^2;
 f_reg = f + mu * regulariz0r;
 
-prob.objective = @(th) slra_mex_obj('func', obj, th2R(th)) ...
-                         + mu * norm(C(th), 'fro') ^ 2;
+% prob.objective = @(th) slra_mex_obj('func', obj, th2R(th)) ...
+%                          + mu * norm(C(th), 'fro') ^ 2;
                      
                      
 %%

@@ -4,17 +4,19 @@
 %%
 p = w2p(w);
 R = ss2r(sys0); 
+%%
 
+slra2slraext_params
 %%
 % tts  - structure specification S(p) = phi * (s0 + p(tts)) 
-[tts, p, r, w, Rini, phi ,psi, opt, th2R, C, s0] = slra_to_slraext(p, s, r, opt);
-
-%%
-% pext = [0; p];
+[tts, p, r, s, w, Rini, phi ,psi, opt, th2R, C, s0] = slra_to_slraext(p, s, r, opt);
+% [opt | Im, q, np, s, N, n, p, | mp, NP, vec_tts, bfs, phi, s0, psi, th2R, C, pext, Rini, Ig, pf,   
+np = length(p);
 % prob.x0 = R2th(Rini, phi * (s0 + pext(tts + 1)), psi, opt.R0); 
  
   
 %% SLRA HANDLERS
+
 
 for missing_data = 1
     
@@ -63,6 +65,7 @@ Rin = Rini;
 gamma = 0.0005;
 
 % Regularizer Parameter
+Ig = 1;
 opt.g = norm(p(Ig)) ^ 2;
 mu = opt.g;
 
