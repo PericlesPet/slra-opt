@@ -1,4 +1,4 @@
-function [sysh, info, wh, xini] = ident_postprocessing(w, m, ell, opt, ph, info, q, N, T)
+function [sysh, info, wh, xini] = slra2sys(w, m, ell, opt, ph, info, q, N, T)
 
 wh = p2w(ph, q, N, T, iscell(w)); 
 if isfield(opt, 'ss') && (opt.ss == 0) 

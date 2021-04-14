@@ -1,4 +1,17 @@
-function [w, s, r, opt, q, N, T] = ident_preprocessing(w,m,ell,opt)
+% Transform SS input (w, m, ell, opt) To SLRA Parameters (w, s, r, q, N, T)
+% Inputs: 
+% w = [u y] : Trajectories
+% m         : Inputs
+% ell       : System Lag
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Outputs:
+% s         : Structure Specification
+% r         : Rank Constraint
+% q = p + m : Inputs + Outputs
+% T         : Samples
+% N         : Time Series Experiments
+
+function [w, s, r, opt, q, N, T] = sys2slra(w,m,ell,opt)
 
     if ~exist('opt'), opt = []; end
     if ~isfield(opt, 'exct'), opt.exct = []; end

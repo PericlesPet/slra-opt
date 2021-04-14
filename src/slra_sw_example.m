@@ -1,8 +1,9 @@
 %% simulation parameters
 % addpath(genpath('helper_functions'))
 addpath(genpath('..\..\..\Matlab'))
+clc
 clear all, randn('seed', 0), rand('seed', 0), warning off
-
+%%
 % DESIGN PARAMETERS
 m_in = 1;            % Inputs
 p_out = 1;           % Outputs
@@ -15,7 +16,7 @@ s_noise = 0.10;      % Noise Variation
 % SLRA Solver Options
 opt_oe.exct = 1:m_in;      % fixed inputs = output error identification
 opt_oe.solver = 'm';
-% opt_oe.method = 'reg';
+opt_oe.method = 'reg';
 
 
 %% compare ident

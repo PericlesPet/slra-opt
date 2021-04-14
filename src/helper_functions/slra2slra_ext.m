@@ -1,7 +1,7 @@
 % Transform
 % FROM: slra(p, s, r, opt) 
 % TO:   slra_ext(tts, p, r, w, Rini, phi, psi, opt, th2R, C, s0) ARGUMENTS
-function [tts, p, r, s, w, Rini, phi ,psi, opt, th2R, C, s0] = slra2slra_ext(p, s, r, opt)
+function [tts, p, r, s, w, Rini, phi ,psi, opt, th2R, C, s0, prob] = slra2slra_ext(p, s, r, opt)
 
 for opt_options_handling = 1    
 if ~exist('opt'), opt = struct; end
@@ -101,11 +101,19 @@ else
   if ~isfield(opt, 'Rini'), opt.Rini = []; end
   if ~isfield(opt, 'psi' ), opt.psi = []; end
   np = length(p); warning_state = warning; warning('off');
+  tts = s2s(s, np);
+  w = s.w; 
+  Rini = opt.Rini;
+  phi = s.phi;
+  psi = opt.psi;
+    
 end
 end
 
   
 for if_exists_in_slra_ext = 1 
+    p_temporary = p;
+if opt.solver == 'm'
 
 p = p(:); if ~exist('opt'), opt = []; end
 [mp, n] = size(tts); np = max(max(tts));
@@ -123,6 +131,7 @@ if ~exist('C') || isempty(C), C = @(th) th2R(th) * th2R(th)' - eye(m - r); end
 if ~exist('Rini') | isempty(Rini)
   pext = [0; p];
   Rini = lra(phi * (s0 + pext(tts + 1)), r);
+
 end
 prob.options = optimset(opt); 
 if isempty(prob.options.Display)
@@ -197,7 +206,8 @@ end
 %     ph = ph_;
 %   end  
 % end
-
+p = p_temporary;
+end
 
 
 

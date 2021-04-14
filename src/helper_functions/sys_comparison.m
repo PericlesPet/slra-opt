@@ -1,4 +1,4 @@
-function sys_comparison(u, y, sys_ID, t_id)
+function M = sys_comparison(u, y, sys_ID, t_id)
 
 figure
 compare(iddata(y, u), idss(sys_ID)); 
