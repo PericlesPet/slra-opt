@@ -1,7 +1,7 @@
 % Transform
 % FROM: slra(p, s, r, opt) 
 % TO:   slra_ext(tts, p, r, w, Rini, phi, psi, opt, th2R, C, s0) ARGUMENTS
-function [tts, p, r, s, w, Rini, phi ,psi, opt, th2R, C, s0, prob] = slra2slra_ext(p, s, r, opt)
+function [tts, p, r, s, w, Rini, phi ,psi, opt, th2R, C, s0, prob, pext] = slra2slra_ext(p, s, r, opt)
 
 for opt_options_handling = 1    
 if ~exist('opt'), opt = struct; end

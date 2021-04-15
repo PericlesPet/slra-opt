@@ -5,8 +5,8 @@
 % Rh     : from ident Solution
 % Rkung  : from Kung Realization
 % RmyOpt : from some of my optimization routines??? 
-
-function [R_stats] = R_comparison(Rs, SSs, is_R, C, obj, m, ell, u0, y0)
+% M_S    : Matrix Structure 
+function [R_stats] = R_comparison(Rs, SSs, is_R, C, obj, m, ell, u0, y0, th2R, M_S, psi)
 
 if is_R
     R = Rs.R;
@@ -31,7 +31,14 @@ R_values = [R ; Rh ; Rkung ; RmyOpt]
 
 %% RESIDUALS (Distance from Constraint : (R*R' - I = 0)
 
-R_constraints = [C(R) ; C(Rh) ; C(Rkung) ; C(RmyOpt)]
+
+
+th_R      = R2th(R,      M_S, psi, 0);
+th_Rh     = R2th(Rh,     M_S, psi, 0);
+th_Rkung  = R2th(Rkung,  M_S, psi, 0);
+th_RmyOpt = R2th(RmyOpt, M_S, psi, 0);
+
+R_constraints = [C(th_R) ; C(th_Rh) ; C(th_Rkung) ; C(th_RmyOpt)]
 
 
 %% F(R) Values

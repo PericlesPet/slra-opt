@@ -5,8 +5,8 @@ clc
 clear all, randn('seed', 0), rand('seed', 0), warning off
 %%
 % DESIGN PARAMETERS
-m_in = 1;            % Inputs
-p_out = 1;           % Outputs
+m_in = 2;            % Inputs
+p_out = 2;           % Outputs
 ell = 2;             % l time-horizon / dynamics                                                                                                  
 s_noise = 0.10;      % Noise Variation
 
@@ -15,9 +15,17 @@ s_noise = 0.10;      % Noise Variation
 
 % SLRA Solver Options
 opt_oe.exct = 1:m_in;      % fixed inputs = output error identification
-opt_oe.solver = 'm';
-opt_oe.method = 'reg';
-
+use_c = 1;
+if use_c
+    opt_oe.solver = 'c';
+else
+    opt_oe.solver = 'm';
+    opt_oe.method = 'reg';
+end
+% opt_MyOptimization
+opt_mo.exct = 1:m_in;      % fixed inputs = output error identification
+opt_mo.solver = 'm';
+opt_mo.method = 'reg';
 
 %% compare ident
 % profile on
