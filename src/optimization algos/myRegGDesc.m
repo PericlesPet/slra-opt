@@ -1,6 +1,7 @@
-function [logdata, data_opt, f_log] = myGDesc(Rin, maxIter, gamma, reg, opt, obj, R)
+function [logdata, data_opt, f_log] = myRegGDesc(Rin, maxIter, gamma, reg, opt, obj, R)
 %%
 clear logdata;
+
 Rini = Rin;
 last_x_elements = 500;
 maxIter = ceil(maxIter / last_x_elements) * last_x_elements;
@@ -10,6 +11,12 @@ min_f = inf;
 if reg
     mu = opt.g;
 end
+
+% Gradient Update Parameters
+constant_thing = 0.1;   % To avoid division by zero
+stepsize_factor = 0.1;  % Initial value of stepsize parameter
+stepsize_update = 100;  % Reduce stepsize every X steps
+
 %%
 i = 1;
 
@@ -74,14 +81,15 @@ end
 logdata(id).normRin     = norm(Rin);
 logdata(id).gdDir_diff  = prev_dir - curr_dir;
 %%
-constant_thing = 0.1;
-factor = 0.1/ceil(i/200);
+%%
+stepsize_param = stepsize_factor/ceil(i/stepsize_update);
+
 if reg    
 %     Rin = Rin - factor*(norm(Rin)+constant_thing)*(gamma * g_reg) / (norm(gamma*g_reg)+constant_thing) ;
-    Rin = Rin - factor*(gamma * g_reg) / (norm(gamma*g_reg)+constant_thing) ;
+    Rin = Rin - stepsize_param * (gamma * g_reg) / (norm(gamma*g_reg)+constant_thing) ;
 else
 %     Rin = Rin - factor*norm(Rin)*gamma * g / (norm(gamma*g) + constant_thing)  ;
-    Rin = Rin - factor*gamma * g / (norm(gamma*g) + constant_thing)  ;
+    Rin = Rin - stepsize_param * gamma * g / (norm(gamma*g) + constant_thing)  ;
 end
 
 %%

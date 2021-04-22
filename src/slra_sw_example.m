@@ -33,7 +33,6 @@ opt_mo.method = 'reg';
 %   GET IDENT SOLUTION
 % tic, sysh_ident = ident(w, m, ell, opt_oe); t_ident = toc;
 tic, sysh_ident = ident_custom(w, m_in, ell, opt_oe); t_ident = toc;
-
 %   GET KUNG REALIZATION SOLUTION
 tic, sysh_kung = w2h2ss(w, m_in, n); t_kung = toc;
 
