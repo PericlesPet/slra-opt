@@ -111,4 +111,5 @@ check2 = [f_fminlbfgs_vals; ...
         f_fminlbfgs_prox_vals; ... 
         ((f_fminlbfgs_vals(:) - f_fminlbfgs_prox_vals(:)) ./ (f_fminlbfgs_vals(:)) * 100)']
 
-
+x_finalz = x_fminlbfgs_steps(:,i);
+sys_comparison(u0,y0, r2ss(reshape(x_finalz, dimensions), m_in, ell));
