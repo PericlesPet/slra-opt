@@ -63,6 +63,8 @@ sys_comparison(u(1:ceil(length(u)/sample_divisor3),:),y(1:ceil(length(y)/sample_
 sample_divisor4 = 1;
 sys_comparison(u0(1:ceil(length(u0)/sample_divisor4),:),y0(1:ceil(length(y0)/sample_divisor4),:), r2ss(Rini, m_in, ell));
 %%
+
+%%
 sample_divisor4 = 1;
 sys_comparison(u0(1:ceil(length(u0)/sample_divisor4),:),y0(1:ceil(length(y0)/sample_divisor4),:), r2ss(x, m_in, ell));
 sys_comparison(u0(1:ceil(length(u0)/sample_divisor4),:),y0(1:ceil(length(y0)/sample_divisor4),:), r2ss(x2, m_in, ell));
