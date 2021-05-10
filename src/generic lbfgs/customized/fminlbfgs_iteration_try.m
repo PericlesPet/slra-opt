@@ -1,4 +1,4 @@
-function [x,fval,exitflag,output,grad, data]=fminlbfgs_iteration(funfcn, optim, data, exitflag)
+function [x,fval,exitflag,output,grad, data]=fminlbfgs_iteration_try(funfcn, optim, data, exitflag)
 %FMINLBFGS finds a local minimum of a function of several variables. 
 %   This optimizer is developed for image registration methods with large 
 %	amounts of unknown variables.

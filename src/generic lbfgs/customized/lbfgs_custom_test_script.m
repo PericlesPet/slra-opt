@@ -40,7 +40,16 @@ noiseLevel = 0.00001;
 for i = 1:fminlbfgs_iterations
 
     if ~exist('x_next'), x_prev = R_lm0(:); else, x_prev = data.xInitial; end;
-    [x_next,fval_next,exitflag,output, grad, data] = fminlbfgs_iteration_try(LM_obj_reg, optim, data, exitflag);
+%     [x_next,fval_next,exitflag,output, grad, data] = fminlbfgs_iteration_try(LM_obj_reg, optim, data, exitflag);
+
+% UPDATE X VIA FminLBFGS
+    [x_next,fval_next,exitflag,output, grad, data] = fminlbfgs_iteration_split1(LM_obj_reg, optim, data, exitflag, 0);
+
+    'breakpoint middle'
+
+% UPDATE HESSIAN VIA FminLBFGS    
+    [x_next,fval_next,exitflag,output, grad, data] = fminlbfgs_iteration_split1(LM_obj_reg, optim, data, exitflag, 1);
+%     [x_next,fval_next,exitflag,output, grad, data] = fminlbfgs_iteration_split2(LM_obj_reg, optim, data, exitflag);
     x_fminlbfgs_steps(:, i) = x_next(:);
     f_fminlbfgs_vals(i) = fval_next;
     
@@ -77,15 +86,15 @@ for i = 1:fminlbfgs_iterations
         
     end
         
-%     dir_compare = [dir_prev' ; data.dir' ; (dir_prev - step_prox)' ; dir_next' ]
-    dir_compare = [dir_prev' ; (data.xInitial - x_prev)' ; (1/data.alpha)*(data.xInitial - x_prev)' ; (dir_prev - step_prox)' ; dir_next' ]
+    %     dir_compare = [dir_prev' ; data.dir' ; (dir_prev - step_prox)' ; dir_next' ]
+    %     dir_compare = [dir_prev' ; (data.xInitial - x_prev)' ; (1/data.alpha)*(data.xInitial - x_prev)' ; (dir_prev - step_prox)' ; dir_next' ]
     %     alignability = (dir_prev' * data.dir) / (norm(dir_prev)^2 )
     
 % Update Gradient
     grad_prev = data.gradient;
     [data,fval,grad]=gradient_function(data.xInitial,LM_obj_reg, data, optim);
     data.gradient=grad;
-%     grad_compare = [grad_prev' ; data.gradient']
+    %     grad_compare = [grad_prev' ; data.gradient']
 
 end
 toc
