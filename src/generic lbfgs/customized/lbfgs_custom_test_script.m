@@ -35,19 +35,42 @@ tic
 
 % [x_next,fval_next,exitflag,output,grad, data] = fminlbfgs_iteration(LM_obj_reg,optim, data, exitflag);
 
-noiseLevel = 0.001;
+noiseLevel = 0.00001;
 for i = 1:fminlbfgs_iterations
-    
-    [x_next,fval_next,exitflag,output,grad, data] = fminlbfgs_iteration_try(LM_obj_reg, optim, data, exitflag);
+
+    if ~exist('x_next'), x_prev = R_lm0(:); else, x_prev = data.xInitial; end;
+    [x_next,fval_next,exitflag,output, grad, data] = fminlbfgs_iteration_try(LM_obj_reg, optim, data, exitflag);
     x_fminlbfgs_steps(:, i) = x_next(:);
     f_fminlbfgs_vals(i) = fval_next;
+    
 
 %     data.xInitial = data.xInitial + noiseLevel * randn(size(data.xInitial));
-    data.xInitial = x_next + noiseLevel * randn(size(data.xInitial));
-    data.dir = (data.xInitial - x_fminlbfgs_steps(:,i))/data.alpha;
+
+% Update X via PROX
+    [x_prox_grad_descent,new_gamma] = prox_grad_descent_step( x_next(:),gamma,beta_safety_value,proxg,f,df );
+    gamma=new_gamma;
+    step_prox = (x_next(:)-x_prox_grad_descent);
+    potential_x = x_next(:) - step_prox;
+
+% Update X
+    xInitial_prev = data.xInitial;
+    data.xInitial = x_next(:) + noiseLevel * randn(size(data.xInitial));
+    x_compare = [x_prev'; xInitial_prev' ; data.xInitial' ; potential_x']
+% Update Direction
+    %     data.dir = (data.xInitial - x_fminlbfgs_steps(:,i))/data.alpha;
+    dir_prev = data.dir;
+    dir_next = (data.xInitial - x_fminlbfgs_steps(:,i));
+    data.dir = (data.xInitial - x_prev);
+    
+    dir_compare = [dir_prev' ; data.dir' ; dir_next' ; step_prox']
+    alignability = (dir_prev' * data.dir) / (norm(dir_prev)^2 )
+    
+% Update Gradient
+    grad_prev = data.gradient;
     [data,fval,grad]=gradient_function(data.xInitial,LM_obj_reg, data, optim);
     data.gradient=grad;
-    
+    grad_compare = [grad_prev' ; data.gradient']
+
 end
 toc
 
@@ -58,3 +81,38 @@ for i = 1:fminlbfgs_iterations
 end
 % %%
 cheeeek = [f_fminlbfgs_vals; test_fs]
+
+
+
+function [data,fval,grad]=gradient_function(x,funfcn, data, optim)
+    % Call the error function for error (and gradient)
+    if ( nargout <3 )
+        timem=tic;   
+        fval=funfcn(reshape(x,data.xsizes)); 
+        data.timeExtern=data.timeExtern+toc(timem);
+        data.funcCount=data.funcCount+1;
+    else
+        if(strcmp(optim.GradObj,'on'))
+            timem=tic;    
+            [fval, grad]=feval(funfcn,reshape(x,data.xsizes)); 
+            data.timeExtern=data.timeExtern+toc(timem);
+            data.funcCount=data.funcCount+1;
+            data.gradCount=data.gradCount+1;
+        else
+            % Calculate gradient with forward difference if not provided by the function
+            grad=zeros(length(x),1);
+            fval=funfcn(reshape(x,data.xsizes));
+            gstep=data.initialStepLength/1e6; 
+            if(gstep>optim.DiffMaxChange), gstep=optim.DiffMaxChange; end
+            if(gstep<optim.DiffMinChange), gstep=optim.DiffMinChange; end
+            for i=1:length(x),
+                x_temp=x; x_temp(i)=x_temp(i)+gstep;
+                timem=tic;    
+                [fval_g]=feval(funfcn,reshape(x_temp,data.xsizes)); data.funcCount=data.funcCount+1;
+                data.timeExtern=data.timeExtern+toc(timem);
+                grad(i)=(fval_g-fval)/gstep;
+            end
+        end
+        grad=grad(:);
+    end
+end
