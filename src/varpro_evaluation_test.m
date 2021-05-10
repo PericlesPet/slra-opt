@@ -1,12 +1,12 @@
 % Perform up to "Data Generation" of slra_sw_example
 tic
-[w, s, r, opt, q, N, T] = sys2slra(w, m_in, ell, opt_mo);
+[w_new, s, r, opt, q, N, T] = sys2slra(w, m_in, ell, opt_mo);
 toc
-p = w2p(w);
+p = w2p(w_new);
 Rh = ss2r(sys0); 
 np = length(p);     
 tic
-[tts, p, r, s, w, Rini, phi ,psi, opt, th2R, C, s0, prob, pext] = slra2slra_ext(p, s, r, opt);
+[tts, p, r, s, w_new, Rini, phi ,psi, opt, th2R, C, s0, prob, pext] = slra2slra_ext(p, s, r, opt);
 toc
 %% SLRA_MEX_OBJ 
 
@@ -38,9 +38,12 @@ gd_time = toc;
 RmyOpt = data_opt.Rin;
 data_opt
 
-%% 
-RmyOpt * RmyOpt'
-f = slra_mex_obj('func', obj, R_try)
+%%
+% RmyOpt * RmyOpt'
+% g = @(x) g_1(x,w);
+f = @(R) slra_mex_obj('func', obj, R);
+
+% f = slra_mex_obj('func', obj, R_try)
 % R_try = stiefel_proj(Rini, RmyOpt);
 % R_try * R_try'
 %%
