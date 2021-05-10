@@ -22,19 +22,20 @@ problem_lm.objective = LM_obj_reg;
 problem_lm.x0 = x0;
 
 %%
-fminlbfgs_iterations = 25;
-x_fminlbfgs_steps = zeros(dimension, fminlbfgs_iterations);
-f_fminlbfgs_vals  = zeros(1, fminlbfgs_iterations);
-test_fs           = zeros(1, fminlbfgs_iterations);
+fminlbfgs_iterations = 50;
+x_fminlbfgs_steps       = zeros(dimension, fminlbfgs_iterations);
+f_fminlbfgs_vals        = zeros(1, fminlbfgs_iterations);
+f_fminlbfgs_prox_vals   = zeros(1, fminlbfgs_iterations);
+test_fs                 = zeros(1, fminlbfgs_iterations);
 %% fminlbfgs - lbfgs - GradConstr = false 
 options = struct('GradObj','on','Display','iter','LargeScale','off','HessUpdate','lbfgs', ...
-    'InitialHessType','identity','GoalsExactAchieve',1,'GradConstr',false, 'MaxIter', 30);
+    'InitialHessType','identity','GoalsExactAchieve',1,'GradConstr',false, 'MaxIter', fminlbfgs_iterations);
 tic
 
 [exitflag, grad, data, optim] = fminlbfgs_data_init(LM_obj_reg,R_lm0,options);
 
 % [x_next,fval_next,exitflag,output,grad, data] = fminlbfgs_iteration(LM_obj_reg,optim, data, exitflag);
-
+useRandom = 0;
 noiseLevel = 0.00001;
 for i = 1:fminlbfgs_iterations
 
@@ -51,25 +52,40 @@ for i = 1:fminlbfgs_iterations
     gamma=new_gamma;
     step_prox = (x_next(:)-x_prox_grad_descent);
     potential_x = x_next(:) - step_prox;
+    f_fminlbfgs_prox_vals(i) = f(potential_x);
 
 % Update X
     xInitial_prev = data.xInitial;
-    data.xInitial = x_next(:) + noiseLevel * randn(size(data.xInitial));
-    x_compare = [x_prev'; xInitial_prev' ; data.xInitial' ; potential_x']
+    if useRandom
+        data.xInitial = x_next(:) + noiseLevel * randn(size(data.xInitial));
+    else %use Prox
+        if ((f_fminlbfgs_vals(i) - f_fminlbfgs_prox_vals(i)) ./ (f_fminlbfgs_vals(i)) * 100 >= 0.5)
+            prcnt_change = (f_fminlbfgs_vals(i) - f_fminlbfgs_prox_vals(i)) ./ (f_fminlbfgs_vals(i)) * 100 
+            data.xInitial = potential_x;
+        end            
+    end
+    
+    %     x_compare = [x_prev'; xInitial_prev' ; data.xInitial' ; potential_x']
 % Update Direction
     %     data.dir = (data.xInitial - x_fminlbfgs_steps(:,i))/data.alpha;
     dir_prev = data.dir;
     dir_next = (data.xInitial - x_fminlbfgs_steps(:,i));
-    data.dir = (data.xInitial - x_prev);
     
-    dir_compare = [dir_prev' ; data.dir' ; dir_next' ; step_prox']
-    alignability = (dir_prev' * data.dir) / (norm(dir_prev)^2 )
+    if ((f_fminlbfgs_vals(i) - f_fminlbfgs_prox_vals(i)) ./ (f_fminlbfgs_vals(i)) * 100 >= 0.5)
+        data.dir = (data.xInitial - x_prev);
+%     else
+        
+    end
+        
+%     dir_compare = [dir_prev' ; data.dir' ; (dir_prev - step_prox)' ; dir_next' ]
+    dir_compare = [dir_prev' ; (data.xInitial - x_prev)' ; (1/data.alpha)*(data.xInitial - x_prev)' ; (dir_prev - step_prox)' ; dir_next' ]
+    %     alignability = (dir_prev' * data.dir) / (norm(dir_prev)^2 )
     
 % Update Gradient
     grad_prev = data.gradient;
     [data,fval,grad]=gradient_function(data.xInitial,LM_obj_reg, data, optim);
     data.gradient=grad;
-    grad_compare = [grad_prev' ; data.gradient']
+%     grad_compare = [grad_prev' ; data.gradient']
 
 end
 toc
@@ -79,10 +95,10 @@ for i = 1:fminlbfgs_iterations
     test_fs(i) = f(x_fminlbfgs_steps(:, i));
     
 end
-% %%
-cheeeek = [f_fminlbfgs_vals; test_fs]
-
-
+%%
+% check1 = [f_fminlbfgs_vals; test_fs; f_fminlbfgs_prox_vals];
+check2 = [f_fminlbfgs_vals; f_fminlbfgs_prox_vals; ... 
+    ((f_fminlbfgs_vals(:) - f_fminlbfgs_prox_vals(:)) ./ (f_fminlbfgs_vals(:)) * 100)']
 
 function [data,fval,grad]=gradient_function(x,funfcn, data, optim)
     % Call the error function for error (and gradient)

@@ -159,6 +159,9 @@ while(true)
     
     % Check if exitflag is set
     if(~isempty(exitflag)), break, end;
+    
+     
+    
     % Update the inverse Hessian matrix
     if(optim.HessUpdate(1)~='s')
         % Do the Quasi-Neton Hessian update.
