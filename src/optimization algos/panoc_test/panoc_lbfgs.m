@@ -98,6 +98,8 @@ for interation_index=1:number_of_steps
     %     x_actuals(:, interation_index)  = x;
     taus(interation_index)          = tau;
     grad_sizes(:, interation_index) = [norm(x); norm(step_prox); norm(d)];
+    
+    if mod(interation_index, 20) == 0, f_evals(interation_index), end;
 end
 panoc_t = toc
 

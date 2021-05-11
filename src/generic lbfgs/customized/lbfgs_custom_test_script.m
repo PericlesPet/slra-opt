@@ -44,7 +44,7 @@ tic
 for i = 1:fminlbfgs_iterations-2
 
 %     STORE PREVIOUS X VALUE, X_PREV
-    if ~exist('x_next'), x_prev = R_lm0(:); else, x_prev = data.xInitial; end
+    if ~exist('x_lbfgs'), x_prev = R_lm0(:); else, x_prev = data.xInitial; end
     if ~isfield(data, 'dir'), dir_prev = zeros(size(x_prev)); else, dir_prev = data.dir; end
     
 % UPDATE X VIA FminLBFGS
@@ -75,7 +75,7 @@ for i = 1:fminlbfgs_iterations-2
         if prcnt_change >= pcntImproveThresh
             data.xInitial = potential_x;
             data.dir = (data.xInitial - x_prev)/data.alpha;
-            data.alpha
+            data.alpha;
         end            
     end
     
