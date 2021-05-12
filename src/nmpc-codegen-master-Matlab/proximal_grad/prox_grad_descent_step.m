@@ -2,7 +2,7 @@ function [ x_new,gamma ] = prox_grad_descent_step( x,gamma,beta,proxg,f,df )
     x_new = proxg(x-gamma*df(x));
     r=x_new-x;
 %     
-%     value1 = f(x_new)
+%     value1 = f(x_new) 
 % %     value2_all = f(x) - dot(df(x),x_new-x) + norm(x_new-x,2)
 %     value2_all = f(x) + dot(df(x),x_new-x) + norm(x_new-x,2)
 %     value2 = f(x)

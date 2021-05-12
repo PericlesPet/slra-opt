@@ -8,21 +8,23 @@ th_format.active    = 0;
 th_format.PhiS_mat  = phi * (s0 + pext(tts + 1));
 th_format.psi       = psi;    
 
-%% Problem Formulation
+% %% Problem Formulation
 if th_format.active
     LM_obj_reg = @(th) varproFuncAndGrad(obj, th2R(th), mu, 1, th_format);
     x0 = R2th(R_lm0, phi * (s0 + pext(tts + 1)), psi, opt.R0);
 else                                           % Reg = 0
-    LM_obj_reg = @(R) varproFuncAndGrad(obj, R, mu, 0, th_format);
+    LM_obj_reg = @(R) SLRA_FuncAndGrad_vals(obj, mu, dimensions, R, 'reg');
+    
     x0 = R_lm0;
+%     x0 = Rkung;
 end
 
 % problem_lm.objective = LM_obj;
 problem_lm.objective = LM_obj_reg;
 problem_lm.x0 = x0;
 
-%% FminLBFGS Params
-fminlbfgs_iterations    = 50;
+% %% FminLBFGS Params
+fminlbfgs_iterations    = 20;
 pcntImproveThresh       = 0.5;
 useNoise                = 0;
 noiseLevel              = 0.00001;
@@ -39,7 +41,9 @@ options = struct('GradObj','on','Display','iter','LargeScale','off','HessUpdate'
     'InitialHessType','identity','GoalsExactAchieve',1,'GradConstr',false, 'MaxIter', fminlbfgs_iterations);
 tic
 
+% [exitflag, grad, data, optim] = fminlbfgs_data_init(LM_obj_reg,x0,options);
 [exitflag, grad, data, optim] = fminlbfgs_data_init(LM_obj_reg,R_lm0,options);
+% [exitflag, grad, data, optim] = fminlbfgs_data_init(LM_obj_reg,Rkung,options);
 
 for i = 1:fminlbfgs_iterations-2
 
@@ -54,9 +58,9 @@ for i = 1:fminlbfgs_iterations-2
     f_fminlbfgs_vals(i) = fval_lbfgs;
     
 
-    if fval_lbfgs <= 72
-        break;
-    end 
+%     if fval_lbfgs <= 72
+%         break;
+%     end 
 
 % Update X, Direction, 
     xInitial_prev = data.xInitial;
@@ -112,4 +116,8 @@ check2 = [f_fminlbfgs_vals; ...
         ((f_fminlbfgs_vals(:) - f_fminlbfgs_prox_vals(:)) ./ (f_fminlbfgs_vals(:)) * 100)']
 
 x_finalz = x_fminlbfgs_steps(:,i);
+% %%
+sample_divisor1 = 1;
+sys_comparison(u0(1:ceil(length(u0)/sample_divisor1),:),y0(1:ceil(length(y0)/sample_divisor1),:), r2ss(reshape(x_finalz, dimensions), m_in, ell));
+%%
 sys_comparison(u0,y0, r2ss(reshape(x_finalz, dimensions), m_in, ell));

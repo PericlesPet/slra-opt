@@ -1,4 +1,3 @@
-
 function data=linesearch(funfcn, data, optim)
 % Find a bracket of acceptable points
 data = bracketingPhase(funfcn, data,optim);

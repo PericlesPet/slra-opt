@@ -8,16 +8,19 @@ np = length(p);
 tic
 [tts, p, r, s, w_new, Rini, phi ,psi, opt, th2R, C, s0, prob, pext] = slra2slra_ext(p, s, r, opt);
 toc
-%% SLRA_MEX_OBJ 
 
-% %%
+% SLRA_MEX_OBJ 
 % opt = rmfield(opt, 'solver');
 obj = slra_mex_obj('new', p, s, r);
+
+%%
 tic, [ph, info] = slra_mex_obj('optimize', obj, opt); t_slra = toc
 
 % [ph, info] = slra(w2p(w), s, r, opt); 
 %%
 if exist('sysh_ident', 'var'), R_ident = ss2r(sysh_ident); end
+if exist('sysh_kung', 'var'), R_kung = ss2r(sysh_kung); end
+if exist('sys0', 'var'), R_opt = ss2r(sys0); end
 Rh = info.Rh;
 Rin = Rini;
 %%
