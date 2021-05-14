@@ -1,6 +1,5 @@
-function [my_array, fbe_low_array, fbe_high_array] = ...
-    conditions_array_test(condition_array, fbe_low_index, fbe_high_index)
-%     FBE_ConditionProcessing(condition_array, fbe_low_index, fbe_high_index)
+function [my_array, fbe_low_array, fbe_high_array, fbe_higher_array] = ...
+    FBE_ConditionProcessing(condition_array, fbe_low_index, fbe_high_index, fbe_higher_index)
 
 %%
 % VARS: 
@@ -47,6 +46,10 @@ end
 % fbe_high_index        = 4;
 fbe_low_array   = slices(:,fbe_low_index) ;
 fbe_high_array  = slices(:,fbe_high_index) ;
+
+if nargin > 3 && nargout > 3
+    fbe_higher_array  = slices(:,fbe_higher_index) ;
+end
 
 % plot(my_array, slices(:,fbe_low_index))
 % hold on 
