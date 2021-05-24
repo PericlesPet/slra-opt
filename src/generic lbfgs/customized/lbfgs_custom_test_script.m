@@ -24,7 +24,7 @@ problem_lm.objective = LM_obj_reg;
 problem_lm.x0 = x0;
 
 % %% FminLBFGS Params
-fminlbfgs_iterations    = 20;
+fminlbfgs_iterations    = 30;
 pcntImproveThresh       = 0.5;
 useNoise                = 0;
 noiseLevel              = 0.00001;

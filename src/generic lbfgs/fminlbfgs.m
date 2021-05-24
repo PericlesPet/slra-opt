@@ -717,7 +717,7 @@ if ((deltaX'*deltaG) >= sqrt(eps)*max( eps,norm(deltaX)*norm(deltaG) ))
         p_k = 1 / (deltaG'*deltaX);
         Vk = eye(data.numberOfVariables) - p_k*deltaG*deltaX';
         % Set Hessian
-        data.Hessian = Vk'*data.Hessian *Vk + p_k * deltaX*deltaX'
+        data.Hessian = Vk'*data.Hessian *Vk + p_k * deltaX*deltaX' ;
         % Set new Direction
         data.dir = -data.Hessian*data.gradient;
     else

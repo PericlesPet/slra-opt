@@ -10,7 +10,7 @@ function [n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m, p, ell, s
 % T             : Samples
 % sys0          : State Space Model of random system
 % u0, y0, w0    : (Initial System)    u0 -> Input Vector , y0 -> Output Vector, w0 -> [u0 y0]
-% u, y, w       : (With Added Noise)  u  -> Input Vector , y  -> Output Vector, w  -> [u y]
+% u,  y,  w     : (With Added Noise)  u  -> Input Vector , y  -> Output Vector, w  -> [u y]
 
 
 n = ell * p;    % STATES -> outputs (X) * dynamics
@@ -30,7 +30,7 @@ q = m + p;      % w Vector size (INPUTS + OUTPUTS)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 total_elem = (n+m)*(p+n);
 % %% SAMPLES, NOISE
-T = 50*total_elem;     % Samples, based on system complexity
+T = 5*total_elem;     % Samples, based on system complexity
 % T = 10;     % Samples
 
 %% generate data

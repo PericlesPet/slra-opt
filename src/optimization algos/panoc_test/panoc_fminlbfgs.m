@@ -1,7 +1,7 @@
 % PANOC algorithm using the lbgfs and proximal gradient methods
 % include the Matlab folder with all its subfolders to your path
 close all
-number_of_steps = 20;
+number_of_steps = 300;
 max_number_of_steps_backtracking=8;
 
 dimensions      = size(Rini);
@@ -44,8 +44,8 @@ buffer_size=50; % buffer_size
 alpha=zeros(1,buffer_size);
 beta=zeros(1,buffer_size);
 
-s=zeros(dimension,buffer_size); % x_{k+1} - x_{k}
-y=zeros(dimension,buffer_size); % df(x_{k+1}) - df(x_{k})
+% s_lbfgs=zeros(dimension,buffer_size); % x_{k+1} - x_{k}
+% y_lbfgs=zeros(dimension,buffer_size); % df(x_{k+1}) - df(x_{k})
 % %% iterate
 options = struct('GradObj','on','Display','iter','LargeScale','off','HessUpdate','lbfgs', ...
     'InitialHessType','identity','GoalsExactAchieve',1,'GradConstr',false, 'MaxIter', number_of_steps);
@@ -104,7 +104,7 @@ for interation_index=1:number_of_steps
             condition_t = toc;
             conditionz  = [condition1; ...
                          condition2_first; condition2_second; ... 
-                         condition2; condition_bool_all];
+                         condition2; 1];
             condition_array(i , interation_index, :) = conditionz;
         end     
 

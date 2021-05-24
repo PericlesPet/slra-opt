@@ -37,7 +37,7 @@ tic
 [x2,fval2,exitflag,output,grad] = fminlbfgs(LM_obj_reg,R_lm0,options);
 toc
 
-%% fminlbfgs - lbfgs - GradConstr = false 
+%% fminlbfgs - lbfgs - GradConstr = false
 options = struct('GradObj','on','Display','iter','LargeScale','off','HessUpdate','lbfgs', ...
     'InitialHessType','identity','GoalsExactAchieve',1,'GradConstr',false, 'MaxIter', 30);
 tic

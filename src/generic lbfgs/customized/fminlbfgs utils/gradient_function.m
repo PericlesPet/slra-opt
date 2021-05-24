@@ -21,7 +21,7 @@ function [data,fval,grad]=gradient_function(x,funfcn, data, optim)
             if(gstep<optim.DiffMinChange), gstep=optim.DiffMinChange; end
             for i=1:length(x),
                 x_temp=x; x_temp(i)=x_temp(i)+gstep;
-                timem=tic;    
+                timem=tic;
                 [fval_g]=feval(funfcn,reshape(x_temp,data.xsizes)); data.funcCount=data.funcCount+1;
                 data.timeExtern=data.timeExtern+toc(timem);
                 grad(i)=(fval_g-fval)/gstep;

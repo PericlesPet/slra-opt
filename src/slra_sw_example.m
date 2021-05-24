@@ -1,9 +1,10 @@
 %% simulation parameters
 % addpath(genpath('helper_functions'))
+addpath(genpath('..\..\..\Matlab\slra-slra-b1908bf'))
 addpath(genpath('..\..\..\Matlab\slra-opt'))
 clc
 clear all, randn('seed', 0), rand('seed', 0), warning off
-%%
+% %%
 % DESIGN PARAMETERS
 m_in = 2;            % Inputs
 p_out = 2;           % Outputs
@@ -27,7 +28,7 @@ opt_mo.exct = 1:m_in;      % fixed inputs = output error identification
 opt_mo.solver = 'm';
 opt_mo.method = 'reg';
 
-%% compare ident
+% %% compare ident
 % profile on
 % profiler_data = profile('info');
 %   GET IDENT SOLUTION
