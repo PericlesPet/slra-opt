@@ -1,4 +1,4 @@
-function [x, fval, lambda, kkt] = almSolve(p, x0, lambda0, options, slradata)
+function [x, fval, lambda, kkt, iterData] = almSolve(p, x0, lambda0, options, slradata)
     % ALMSOLVE  Find a local minimum of a function subject to equality and inequality constraints
     %           using the Augmented Lagrangian method. This function approximates the solution to
     %           linear, quadratic, and nonlinear programming problems of the form
@@ -399,9 +399,11 @@ function [x, fval, lambda, kkt] = almSolve(p, x0, lambda0, options, slradata)
 
         cverg = false;
         for iter = 1:niter
+            
+            
             fprintf('ITERATION = %d\n', iter);
 
-            x = almSearch(L, DxL, x, lambda, rho, Xtol, ... 
+            [x, searchData] = almSearch(L, DxL, x, lambda, rho, Xtol, ... 
                 lb, ub, Xtol, alpha, miter, slradata);
 
             [kkt{1}, kkt{2}, kkt{3}] = KKT(x, lambda, rho);
@@ -410,7 +412,16 @@ function [x, fval, lambda, kkt] = almSolve(p, x0, lambda0, options, slradata)
                 cverg = true;
                 break;
             end
-
+            
+            iterData.fval(iter)         = L(x, lambda, rho);
+            iterData.x(:,iter)          = x;
+            iterData.lambda(iter)       = lambda;
+            iterData.v(iter)            = v;
+            iterData.rho(iter)          = rho;
+            iterData.kkt(:,iter)        = kkt;
+            if ~isstr(searchData)
+                iterData.searchData(iter)   = searchData;
+            end      
             v0 = norm(ce(x))^2;
             if v0 < eta*v
                 lambda = lambda - rho*ce(x)';
@@ -418,6 +429,8 @@ function [x, fval, lambda, kkt] = almSolve(p, x0, lambda0, options, slradata)
             else
                 rho = gma*rho;
             end
+            
+            
         end
 
         fval = L(x, lambda, rho);

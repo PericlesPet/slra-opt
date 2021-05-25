@@ -173,10 +173,9 @@ end
 
 options = struct( ...
     'gma', gma ,...
-    'niter', 1 , ... 
-    'miter', 100 ...
+    'niter', 3 , ... 
+    'miter', 20 ...
 );
-
 
 slradata.obj    = obj;
 slradata.np     = np;
@@ -193,3 +192,8 @@ ph_alm = x(1:np);
 
 R_alm = reshape(x(np+1:end), 2, 12);
 f_temp = slra_mex_obj('func', obj, R_alm)
+f_temp = slra_mex_obj('func', obj, Rini)
+%%
+sys_comparison(u0, y0, r2ss(R_alm, m_in, ell))
+sys_comparison(u0, y0, r2ss(Rini, m_in, ell))
+
