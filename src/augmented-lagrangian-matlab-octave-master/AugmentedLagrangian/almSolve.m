@@ -277,7 +277,7 @@ function [x, fval, lambda, kkt, iterData] = almSolve(p, x0, lambda0, options, sl
         kkt{1} = df(x);
         kkt{2} = 0;
         kkt{3} = 0;
-%% ALGORITHM 2
+%% ALGORITHM 2          [Nocedal] - Algorithm 17.4 (Bound-Constrained Lagrangian Method).
     elseif algorithm == 2
         nvar = length(x0);
         if ~isempty(ce) && ~isempty(dce)
@@ -376,7 +376,8 @@ function [x, fval, lambda, kkt, iterData] = almSolve(p, x0, lambda0, options, sl
 
         fval = L(s, lambda, rho);
         x = s(1:nvar);
-%% ALGORITHM 3
+%% ALGORITHM 3 [Nocedal] - Algorithm 17.4 (Bound-Constrained Lagrangian Method) 
+% (But without omega, eta
     elseif algorithm == 3
 %                               ce(x) is 1xN, lambda is Nx1
         L = @(x, lambda, rho)(f(x) - ce(x)*lambda + rho/2*norm(ce(x))^2);

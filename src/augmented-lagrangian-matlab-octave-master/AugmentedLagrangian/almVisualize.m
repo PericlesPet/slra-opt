@@ -12,6 +12,7 @@ Ls              = [checkdata.searchData(:).L];
 Mslras          = [checkdata.searchData(:).Mslra];
 CEs             = [checkdata.searchData(:).CE];
 DPs             = [checkdata.searchData(:).DP];
+DPus            = [checkdata.searchData(:).DPu];
 Ms              = [checkdata.searchData(:).M];
 iters           = [checkdata.searchData(:).iters];
 
@@ -53,7 +54,7 @@ for ii = 1:length(iters)
     line([x_curr x_curr], [0.9* min(Mslras) 1.1*max(Mslras)], 'LineStyle' , ':', 'Color', 'r')
 end    
 line([0 x_curr], [info1.fmin info1.fmin], 'Color', 'r')
-
+ylim([0 100])
 
 subplot(3,2,4)
 
@@ -66,6 +67,18 @@ for ii = 1:length(iters)
 end
 [~, M1_opt] = accuracy_r(info1.Rh);
 line([0 x_curr], [mean(M1_opt) mean(M1_opt)], 'Color', 'r')
+ylim([-100 200])
+
+
+subplot(3,2,6)
+plot(DPus)
+title('norm(u - u_{hat})')
+x_curr = 0;
+for ii = 1:length(iters)
+	x_curr = x_curr + iters(ii);
+    line([x_curr x_curr], [0.9* min(DPus) 1.1*max(DPus)], 'LineStyle' , ':', 'Color', 'r')
+end
+
 
 % legend('1', '2', '3', '4','5')
 

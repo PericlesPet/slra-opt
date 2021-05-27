@@ -192,7 +192,7 @@ if opt.solver == 'm'
     
     
     wtfdata.tts = tts; wtfdata.p = p; wtfdata.bfs = bfs; 
-    wtfdata.phi = phi; wtfdata.s0 = s0;  
+    wtfdata.phi = phi; wtfdata.s0 = s0; wtfdata.s = s; 
     if reg
       if ~exist('opt') || ~isfield(opt, 'g') || isempty(opt.g) 
         opt.g = norm(p(Ig)) ^ 2; 

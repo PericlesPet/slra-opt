@@ -53,6 +53,7 @@ for ii = 1:length(iters)
     line([x_curr x_curr], [0.9* min(Mslras) 1.1*max(Mslras)], 'LineStyle' , ':', 'Color', 'r')
 end    
 line([0 x_curr], [info1.fmin info1.fmin], 'Color', 'r')
+ylim([0 100])
 
 
 subplot(3,2,4)
@@ -66,6 +67,7 @@ for ii = 1:length(iters)
 end
 [~, M1_opt] = accuracy_r(info1.Rh);
 line([0 x_curr], [mean(M1_opt) mean(M1_opt)], 'Color', 'r')
+ylim([-100 110])
 
 % legend('1', '2', '3', '4','5')
 

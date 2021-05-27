@@ -21,15 +21,33 @@
         wtfdata.bfs, wtfdata.phi, wtfdata.s0);
 
     % Get initial P_hat, x0
-    [~, ph_ini] = mslra_handle(Rini); 
-    ph_ini = [p(isinf(s.w)); ph_ini];
-    X = [ph_ini(:) ; Rini(:)];
-    x0 = X;
+    [~, ph_ini, mslracheck] = mslra_handle(Rini); 
+
+    % Get weights and indices
+    alm_weights         = s.w;
+    non_inf_indices     = ~isinf(alm_weights);
+    inf_indices         = isinf(alm_weights);
+
+    % Get x0, Transform to reduced_x0
+    x   = [ph_ini(:) ; Rini(:)];
+    x0  = x;
+	
+    np = length(wtfdata.p);
+    % Helper lambda functions
+    p2pext      = @(X) [0 ; X];
+    pext2hankel = @(X) X(wtfdata.tts+1);
+    x2hankel    = @(X) (wtfdata.s0 + pext2hankel(p2pext(X(1:np))));
+    x2R         = @(X) (reshape(X(np+1:end), size(Rini)));
+    
+    % Function and Gradient 
+%     alm_weights = [1e6*ones(sum(isinf(s.w)), 1); ones(sum(~isinf(s.w)), 1)];
+    f = @(X) 1/2*norm(alm_weights(~isinf(alm_weights)).* (X(1:np)-wtfdata.p(1:np)))^2 ; 
+    df = @(X) [alm_weights(~isinf(alm_weights)).* (X(1:np)-wtfdata.p(1:np)) ; zeros(R_n * R_m, 1)] ;
 
     % Constraint equality with norm
     gstep = 1/1e9;
     ce_n = @(X) norm((reshape (... 
-            reshape(X(np+1:end), size(Rini)) * X(tts), ... 
+            x2R(X) * x2hankel(X), ... 
             size(Rini, 1) * (T-ell), 1 ...
             )));
     dce_n = @(X) FDGradient(ce_n, X, gstep);
@@ -37,8 +55,8 @@
 %         'f', @(X) 1/2*norm(X(1:np)-p)^2, ...
 %         'df', @(X) [(X(1:np)-p) ; zeros(R_n * R_m, 1)] , ...
     problem = struct( ...
-        'f', @(X) 1/2*norm(X(np/2+1:np)-p(np/2+1:np))^2, ...
-        'df', @(X) [zeros(np/2, 1) ; (X(np/2+1:np)-p(np/2+1:np)) ; zeros(R_n * R_m, 1)] , ...
+        'f', f, ...
+        'df', df, ...
         'ce', ce_n, ...
         'dce', dce_n ... 
         );
@@ -49,9 +67,9 @@
 
 %         'gma', gma ,...
      options = struct( ...
-        'gma', 15 ,...
-        'niter', 8 , ... 
-        'miter', 30 ...
+        'gma', 5 ,...
+        'niter', 10 , ... 
+        'miter', 40 ...
     );
 
     slradata.obj    = obj;
@@ -80,11 +98,14 @@ toc
     %    DP = 1.2228,        DP0 = 0.7427
     % Elapsed time is 101.488286 seconds.
 
-    
-%%
-tic
-[ph1, info1] = slra(p, s, r, opt)
-toc
+% Get final x
+x_final(inf_indices,1)        = p(inf_indices);
+x_final(non_inf_indices,1)    = x(1:np);
+if ~exist('info1')
+    tic
+    [ph1, info1] = slra(p, s, r, opt);
+    toc
+    accuracy_r = @(R)compare(iddata(slradata.y0, slradata.u0), idss(r2ss(R, slradata.m_in, slradata.ell))); 
     % STATS: 
     % iterations: 91
     %         funcCount: 2400
@@ -98,10 +119,8 @@ toc
     %                Th: [24×94 double]
     %                 F: [1×94 double]
     % 
-    % Elapsed time is 37.140498 seconds.
-
-    
-accuracy_r = @(R)compare(iddata(slradata.y0, slradata.u0), idss(r2ss(R, slradata.m_in, slradata.ell))); 
+    % Elapsed time is 37.140498 seconds.    
+end
 %%
 test_alm_gd_visualize
 
