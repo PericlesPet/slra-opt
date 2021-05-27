@@ -399,6 +399,14 @@ function [x, fval, lambda, kkt, iterData] = almSolve(p, x0, lambda0, options, sl
         ub = NaN(size(x));
 
         cverg = false;
+        
+        iterData.L      = L;
+        iterData.DxL    = DxL;
+        iterData.f      = f;
+        iterData.df     = df;
+        iterData.ce     = ce;
+        iterData.dce    = dce;
+        
         for iter = 1:niter
             
             
