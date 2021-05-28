@@ -424,7 +424,7 @@ function [x, fval, lambda, kkt, iterData] = almSolve(p, x0, lambda0, options, sl
             
             iterData.fval(iter)         = L(x, lambda, rho);
             iterData.x(:,iter)          = x;
-            iterData.lambda(iter)       = lambda;
+            iterData.lambda(:,iter)       = lambda;
             iterData.v(iter)            = v;
             iterData.rho(iter)          = rho;
             iterData.kkt(:,iter)        = kkt;

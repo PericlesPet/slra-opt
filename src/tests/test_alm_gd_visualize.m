@@ -26,14 +26,14 @@ for ii = 1:length(iters)
 end    
 
 subplot(3,2,3)
-semilogy(CEs)
-title('norm(RH(x))')
+semilogy(CEs')
+title('norm(R*H(x))   &   norm(R*Rt - I)')
 x_curr = 0;
 for ii = 1:length(iters)
 	x_curr = x_curr + iters(ii);
-    line([x_curr x_curr], [0.9* min(CEs) 1.1*max(CEs)], 'LineStyle' , ':', 'Color', 'r')
+    line([x_curr x_curr], [0.9* min(min(CEs)) 1.1*max(max((CEs)))], 'LineStyle' , ':', 'Color', 'r')
 end    
-
+legend('norm(RH)', 'norm(RR - I)')
 
 subplot(3,2,5)
 plot(DPs)
@@ -53,7 +53,7 @@ for ii = 1:length(iters)
     line([x_curr x_curr], [0.9* min(Mslras) 1.1*max(Mslras)], 'LineStyle' , ':', 'Color', 'r')
 end    
 line([0 x_curr], [info1.fmin info1.fmin], 'Color', 'r')
-ylim([0 100])
+ylim([0 12])
 
 
 subplot(3,2,4)
@@ -67,7 +67,7 @@ for ii = 1:length(iters)
 end
 [~, M1_opt] = accuracy_r(info1.Rh);
 line([0 x_curr], [mean(M1_opt) mean(M1_opt)], 'Color', 'r')
-ylim([-100 110])
+ylim([85 101])
 
 % legend('1', '2', '3', '4','5')
 

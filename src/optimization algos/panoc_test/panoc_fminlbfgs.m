@@ -31,7 +31,7 @@ mu = opt.g;
 fcn_mode = 're';
 [f, df] = SLRA_FuncAndGrad_handles(obj, mu, dimensions, fcn_mode);
 LM_obj_reg = @(R) SLRA_FuncAndGrad_vals(obj, mu, dimensions, R, fcn_mode);
-
+%%
 % get starting value gamma
 lipschitz_constant= estimate_lipschitz( df,x0 );
 gamma0 = (1-beta_safety_value)/lipschitz_constant;
