@@ -1,4 +1,4 @@
-function [logdata, dataOptId, f_log, minf_log] = myProjGDesc(gdInput, opt, R_slramex)
+function [logdata, dataOptId, f_log, minf_log] = myManoptGDesc(gdInput, opt, R_slramex)
     %% Parameters
     clear logdata;
     Rin     = gdInput.Rin;
@@ -130,10 +130,7 @@ function [logdata, dataOptId, f_log, minf_log] = myProjGDesc(gdInput, opt, R_slr
         if reg    
             Rin = Rin - stepsize_param * (gamma * g_reg) / (norm(gamma*g_reg)+constant_thing) ;
         else
-            % Gradient Step
-            Rin = Rin - stepsize_param * gamma * g / (norm(gamma*g));
-            % Projection
-            Rin = reshape(prox_g_indicator(Rin), size(Rin));
+            Rin = Rin - stepsize_param * gamma * g_proj / (norm(gamma*g_proj))  ;
         end
     end
     

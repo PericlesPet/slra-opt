@@ -1,122 +1,142 @@
-function [logdata, data_opt, f_log, minf_log] = myGDesc(Rin, maxIter, gamma, reg, opt, obj, R, extCond)
-%%
-clear logdata;
-Rini = Rin;
-last_x_elements = 500;
-maxIter = ceil(maxIter / last_x_elements) * last_x_elements;
-
-f_log = zeros(maxIter, 1);
-minf_log = zeros(ceil(maxIter/100),1);
-
-min_f = inf;
-% Regularizer Parameter
-if reg
-    mu = opt.g;
-end
-
-% Gradient Update Parameters
-constant_thing = 0.1;   % To avoid division by zero
-stepsize_factor = 0.01;  % Initial value of stepsize parameter
-stepsize_update = 20;  % Reduce stepsize every X steps
-% If the optimal value changes less than (tolPcntChange)% 
-% across 100 iterations, stop the descent
-tolPcntChange = 1;      
-%%
-i = 1;
-
-% Stopping criteria (if implemented?)%%
-% numberz = 2800;
-% (f_log(numberz +100)/f_log(numberz )-1)*100 > 0.1
-
-%%
-for i = 1:maxIter
-%%
-if mod(i,100) == 0  
-    i
-    min_f
-    minf_log(i/100) = min_f;
-    if (i >= 102 && extCond)        
-%         abs((f_log(i-1)/f_log(i - 101)-1)*100)
-        abs((minf_log(i/100)/minf_log(i/100-1)-1)*100)        
-        if abs((minf_log(i/100)/minf_log(i/100-1)-1)*100) < tolPcntChange
-            break
-        end
-    end
-end
-% i = i + 1;
-f = slra_mex_obj('func', obj, Rin);
-% Rin;
-if reg
-    regularizer = norm(Rin * Rin' - eye(size(Rin*Rin')),'fro')^2;
-    f_reg = f + mu * regularizer;
-end
-
-if i == 2
+function [logdata, dataOptId, f_log, minf_log] = myGDesc(gdInput, opt, R_slramex)
+    %% Parameters
+    clear logdata;
+    Rin     = gdInput.Rin;
+    maxIter = gdInput.maxIter;
+    gamma   = gdInput.gamma;
+    reg     = gdInput.reg;
+    obj     = gdInput.obj;
+    Ropt    = gdInput.Ropt;
+    extCond = gdInput.extCond;
+    sysAcc  = gdInput.sysAccuracy;
+    % last_x_elements = 10000;
+    % last_x_elements = maxIter;
+    % maxIter = ceil(maxIter / last_x_elements) * last_x_elements;
+    f_log = zeros(maxIter, 1);
+    minf_log = zeros(ceil(maxIter/100),1);
+    min_f = inf;
+    % Regularizer Parameter
     if reg
-        min_f = f_reg;
-    else
-        min_f = f ; 
+        mu = opt.g;
     end
-end
+
+    modVal = 25;
+    % Gradient Update Parameters
+    constant_thing = 0.1;   % To avoid division by zero
+    stepsize_factor = 0.01;  % Initial value of stepsize parameter
+    stepsize_update = 20;  % Reduce stepsize every X steps
+    % If the optimal value changes less than (tolPcntChange)% 
+    % across 100 iterations, stop the descent
+    tolPcntChange = 1;      
+
+    %%
+    tic
+    for i = 1:maxIter
+
+        %% Set F
+        f = slra_mex_obj('func', obj, Rin);
+        % Rin;
+        if reg
+            regularizer = norm(Rin * Rin' - eye(size(Rin*Rin')),'fro')^2;
+            f_reg = f + mu * regularizer;
+        end
+
+        if i == 2
+            if reg
+                min_f = f_reg;
+            else
+                min_f = f ; 
+            end
+        end
 
 
-%%
-if exist('g') prev_dir = sign(g); else prev_dir = zeros(size(Rin)); end
-g = slra_mex_obj('grad', obj, Rin);
-curr_dir = sign(g);
-if reg
-    regularizer_grad =  2 *(Rin * Rin' - eye(size(Rin*Rin')))*Rin;
-    g_reg = g + mu * regularizer_grad ;
-end
+        %% Set G
+        if exist('g') prev_dir = sign(g); else prev_dir = zeros(size(Rin)); end
+        g = slra_mex_obj('grad', obj, Rin);
+        curr_dir = sign(g);
+        if reg
+            regularizer_grad =  2 *(Rin * Rin' - eye(size(Rin*Rin')))*Rin;
+            g_reg = g + mu * regularizer_grad ;
+        end
 
-%%
-residual_R = Rin*Rin' ;
-dir_diff    = sign(R-Rin) - sign(-g);
 
-%%
-f_log(i) = f; 
-id = mod(i-1, last_x_elements)+1;
+        %% Every modVal iterations ...
+        printData = 1;
+        if (mod(i-1,modVal) == 0) && (printData == 1)
+            %% Data Logging
+            if exist('logdata'), t_stamp = logdata.t_stamps(end) + toc; ...
+            else, t_stamp = toc; end
+            residual_R = norm(Rin*Rin'-eye(size(Rin,1)));
+            %     dir_diff    = sign(R-Rin) - sign(-g);
+            %         id = mod(i-1, last_x_elements)+1;
+            id = (i-1) / modVal + 1;
+            f_log(i) = f; 
+            logdata.t_stamps(id)      = t_stamp;
+            logdata.f(id)             = f;
+            logdata.g(:,id)           = g(:);
+            logdata.residual_R(id)    = residual_R;
+            logdata.Rin(:,id)         = Rin(:);
+            if reg
+                logdata.f_reg(id)         = f_reg;
+                logdata.g_reg(:,id)       = g_reg(:);
+                %         logdata(id).pcntChange  = norm(gamma*g_reg)/norm(Rin);
+                %         logdata(id).normG_reg   = norm(gamma*g_reg);
+            else
+                %         logdata(id).pcntChange  = norm(gamma*g)/norm(Rin);
+                %         logdata(id).normG       = norm(gamma*g);
+            end
+            logdata.normRin(id)          = norm(Rin);
+            [~, logdata.M(:,id)]         = sysAcc(Rin);
+            %     logdata(id).R_opt       = R;
+            %     logdata(id).R_opt_dist  = R - Rin;
+            %     logdata(id).dir_diff    = dir_diff;
+            %     logdata(id).R_cond      = cond(Rin);
+            %     logdata(id).gdDir_diff  = prev_dir - curr_dir;
 
-logdata(id).f           = f;
-logdata(id).g           = g;
-logdata(id).residual_R  = residual_R;
-logdata(id).Rin         = Rin;
-logdata(id).R_opt       = R;
-logdata(id).R_opt_dist  = R - Rin;
-logdata(id).dir_diff    = dir_diff;
-logdata(id).R_cond      = cond(Rin);
-if reg
-    logdata(id).f_reg       = f_reg;
-    logdata(id).g_reg       = g_reg;
-    logdata(id).pcntChange  = norm(gamma*g_reg)/norm(Rin);
-    logdata(id).normG_reg   = norm(gamma*g_reg);
-else
-    logdata(id).pcntChange  = norm(gamma*g)/norm(Rin);
-    logdata(id).normG       = norm(gamma*g);
-end
-logdata(id).normRin     = norm(Rin);
-logdata(id).gdDir_diff  = prev_dir - curr_dir;
-%%
-stepsize_param = stepsize_factor/ceil(i/stepsize_update);
 
-if reg    
-%     Rin = Rin - factor*(norm(Rin)+constant_thing)*(gamma * g_reg) / (norm(gamma*g_reg)+constant_thing) ;
-    Rin = Rin - stepsize_param * (gamma * g_reg) / (norm(gamma*g_reg)+constant_thing) ;
-else
-%     Rin = Rin - factor*norm(Rin)*gamma * g / (norm(gamma*g) + constant_thing)  ;
-    Rin = Rin - stepsize_param * gamma * g / (norm(gamma*g) + constant_thing)  ;
-end
+            %% Log minimum
+            if reg
+                if f_reg <= min_f
+                    dataOptId = id;
+                    min_f = f_reg;  
+                end
+            else
+                if f<=min_f
+                    dataOptId = id;
+                    min_f = f;
+                end
+            end
 
-%%
-if reg
-    if f_reg <= min_f
-        data_opt = logdata(id);
-        min_f = f_reg;
+            %% Condition + Print
+    %         logdata
+            fprintf('ITERATION: %d, minF = %f, id = %d, t_stamp = %f \n', i, min_f, id, logdata.t_stamps(id));
+            minf_log(id) = min_f;
+            if (id >= 2 && extCond)
+                %         abs((f_log(i-1)/f_log(i - 101)-1)*100)
+                abs((minf_log(i/modVal)/minf_log(i/modVal-1)-1)*100)        
+                if abs((minf_log(i/modVal)/minf_log(i/modVal-1)-1)*100) < tolPcntChange
+                    break
+                end
+            end
+            tic
+        else
+            dataOptId = 1;
+        end
+
+        %% Update R
+        stepsize_param = stepsize_factor/ceil(i/stepsize_update);
+
+        if reg    
+            Rin = Rin - stepsize_param * (gamma * g_reg) / (norm(gamma*g_reg)+constant_thing) ;
+        else
+            Rin = Rin - stepsize_param * gamma * g / (norm(gamma*g) + constant_thing)  ;
+        end
+
     end
-else
-    if f<=min_f
-        data_opt = logdata(id);
-        min_f = f;
-    end
-end
-end
+
+    logdata.gamma   = gamma;
+    logdata.reg     = reg;
+    logdata.updateParams = [constant_thing;stepsize_factor;stepsize_update];
+    logdata.comment = 'Update Params: constant_thing, stepsize_factor, stepsize_update';
+
+

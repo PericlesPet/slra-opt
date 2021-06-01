@@ -13,10 +13,9 @@
     vec_tts = tts(:); NP = 1:np;
     bfs = vec_tts(:, ones(1, np)) == NP(ones(m_t * n_t, 1), :);
     s0_2   = zeros(m_t, n_t);
-
     R_n = size(Rini, 1);
     R_m = size(Rini, 2);
-
+    
     mslra_handle = @(R) Mslra_ext(R, wtfdata.tts, wtfdata.p, [], ... 
         wtfdata.bfs, wtfdata.phi, wtfdata.s0);
 

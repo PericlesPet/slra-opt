@@ -38,14 +38,12 @@ tic, sysh_ident = ident_custom(w, m_in, ell, opt_oe); t_ident = toc;
 tic, sysh_kung = w2h2ss(w, m_in, n); t_kung = toc;
 
 
-
 %%
 % How Close is initial system to noisy [u,y] ??
 sys_comparison(u, y, sys0)              
-%%
-% sys_comparison(u0, y0, r2ss(ss2r(sys0)Ropt, m_in, ell))              
+% Confirm sys0 is the ground truth
 sys_comparison(u0, y0, r2ss(ss2r(sys0), m_in, ell))              
-%%
+%%  
 % How close is SLRA IDENTIFIED system to initial system
 sys_comparison(u0, y0, sysh_ident, t_ident) 
 % How close is KUNG REALIZATION system to initial system
