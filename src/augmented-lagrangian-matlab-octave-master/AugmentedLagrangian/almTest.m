@@ -38,9 +38,6 @@ gma = 10;
 
     % Get initial P_hat, x0
     [~, ph_ini] = mslra_handle(Rini); 
-    ph_ini = [p(isinf(s.w)); ph_ini];
-    X = [ph_ini(:) ; Rini(:)];
-    x0 = X;
 
     % Get weights and indices
     alm_weights         = s.w;
@@ -51,82 +48,109 @@ gma = 10;
     x   = [ph_ini(:) ; Rini(:)];
     x0  = x;
 	
-    np = length(wtfdata.p);
+    np_w = length(wtfdata.p);
     % Helper lambda functions
     p2pext      = @(X) [0 ; X];
     pext2hankel = @(X) X(wtfdata.tts+1);
-    x2hankel    = @(X) (wtfdata.s0 + pext2hankel(p2pext(X(1:np))));
-    x2R         = @(X) (reshape(X(np+1:end), size(Rini)));
-    
-
-    
+    x2hankel    = @(X) (wtfdata.s0 + pext2hankel(p2pext(X(1:np_w))));
+    x2R         = @(X) (reshape(X(np_w+1:end), size(Rini)));
+       
     % Function and Gradient 
-    alm_weights = [1e6*ones(sum(isinf(s.w)), 1); ones(sum(~isinf(s.w)), 1)];
-    f = @(X) 1/2*norm(alm_weights(~isinf(alm_weights)).* (X(1:np)-wtfdata.p(1:np)))^2 ; 
-    df = @(X) [alm_weights(~isinf(alm_weights)).* (X(1:np)-wtfdata.p(1:np)) ; zeros(R_n * R_m, 1)] ;
+    %     alm_weights = [1e6*ones(sum(isinf(s.w)), 1); ones(sum(~isinf(s.w)), 1)];
+    f = @(X) 1/2*norm(alm_weights(~isinf(alm_weights)).* (X(1:np_w)-wtfdata.p(1:np_w)))^2 ; 
+    df = @(X) [alm_weights(~isinf(alm_weights)).* (X(1:np_w)-wtfdata.p(1:np_w)) ; zeros(R_n * R_m, 1)] ;
 
     
     % Constraint equality with norm
     gstep = 1/1e9;
-    ce_n = @(X) norm((reshape (... 
+    % norm( R*H(X) ) = 0  Constraint
+    ce_rh0 = @(X) norm((reshape (... 
             x2R(X) * x2hankel(X), ... 
             size(Rini, 1) * (T-ell), 1 ...
             )));
-    dce_n = @(X) FDGradient(ce_n, X, gstep);
+    % norm( R*R - I ) = 0 Constraint
+    ce_rri = @(X) stiefConstraint(x2R(X), 'dist');
 
+    % (Forward) Gradients of Constraints
+    dce_rri = @(X) FDGradient(ce_rri, X, gstep);
+    dce_rh0 = @(X) FDGradient(ce_rh0, X, gstep);
+  
+    % All Constraints in 1 
+    ce = @(X)([ce_rh0(X), ce_rri(X)]);
+    dce = @(X) ([dce_rh0(X) dce_rri(X)]);
+    % 'f', @(X) 1/2*norm(X(1:np)-p)^2, ...
+    % 'df', @(X) [(X(1:np)-p) ; zeros(R_n * R_m, 1)] , ...
     problem = struct( ...
         'f', f, ...
         'df', df, ...
-        'ce', ce_n, ...
-        'dce', dce_n ... 
+        'ce', ce, ...
+        'dce', dce ... 
         );
-% 		'ci', @(X) (0), ...
-% 		'dci', @(X) 0 ...
+        % 'ci', @(X) (0), ...
+        % 'dci', @(X) 0 ...
 
     lambda0 = [];
 
+    options = struct( ...
+        'gma', 5 ,...
+        'niter', 10 , ... 
+        'miter', 100 ...
+    );
 
-    slradata.obj    = obj;
-    slradata.np     = np;
-    slradata.p      = p;
+    %     slradata.obj    = obj;
+    %     slradata.np     = np;
+    %     slradata.p      = p;
     slradata.ce     = problem.ce;
-    slradata.Rini   = Rini;
-    slradata.m_in   = m_in;
-    slradata.ell    = ell;
-    slradata.y0     = y0;
-    slradata.u0     = u0;
-    slradata.s      = s;
+    %     slradata.Rini   = Rini;
+    %     slradata.m_in   = m_in;
+    %     slradata.ell    = ell;
+    %     slradata.y0     = y0;
+    %     slradata.u0     = u0;
+    %     slradata.s      = s;
+
+    continue_from_earlier = 0;
+    if continue_from_earlier == 1
+        options = struct( ...
+            'gma', 5 ,...
+            'rho', checkdata.rho(end), ...        
+            'niter', 20 , ... 
+            'miter', 100 ...
+        );
+        x0 = checkdata.x(:,end);
+        lambda0 = checkdata.lambda(:,end);
+        checkdata_temp = checkdata;
+    end
+     
+
+    
  end
 
-%  'gma', gma ,...
-options = struct( ...
-    'gma', 5 ,...
-    'niter', 8 , ... 
-    'miter', 30 ...
-);
 
 
 tic
 [x, fval, lambda, kkt, checkdata] = ...
     almSolve(problem, x0, lambda0, options, slradata);
 toc
-%%
+
 if ~exist('info1')
     tic
     [ph1, info1] = slra(p, s, r, opt)
     toc
-    accuracy_r = @(R)compare(iddata(slradata.y0, slradata.u0), idss(r2ss(R, slradata.m_in, slradata.ell))); 
+    % accuracy_r = @(R)compare(iddata(slradata.y0, slradata.u0), idss(r2ss(R, slradata.m_in, slradata.ell))); 
 end
 
 almVisualize
 
 
 %%
-R_alm_vec = x(np+1:end);
-R_alm = reshape(R_alm_vec, R_n, R_m);
-ph_alm = x(1:np);
+% Get final x
+x_final(inf_indices,1)        = p(inf_indices);
+x_final(non_inf_indices,1)    = x(1:np);
 
-R_alm = reshape(x(np+1:end), 2, 12);
+R_alm_vec = x(np_w+1:end);
+R_alm = reshape(R_alm_vec, R_n, R_m);
+ph_alm = x(1:np_w);
+
 f_temp = slra_mex_obj('func', obj, R_alm)
 f_temp = slra_mex_obj('func', obj, Rini)
 [~, M_alm] = accuracy_r(R_alm);

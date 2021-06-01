@@ -10,16 +10,31 @@ dce = checkdata.dce;
 
 rho = 10;
 lambda;
+
+selectAlgo = 1;
+
+switch selectAlgo
+	case 1 	% ALM function, no constraints (maybe R*R' = I ?)
+		fun     = @(x) objfungrad(x, Lx, DxLx);
+
+	case 2  % SLRA function, s.t. R*R' = I
+		fun     = @(x) LM_obj_reg(reshape(x,size(Rini)));
+		
+		ce_rri2 = @(x) stiefConstraint(reshape(x,size(Rini)), 'dist');
+		dce_rri2 = @(x)FDGradient(ce_rri2,x,gstep);
+		nonlcon = @(x) confungrad(x, ce_rri2, dce_rri2);
+
+	case 3  % norm(p - ph)^2 s.t. constraints,  WITHOUT  Constraint Gradients 
+		fun     = @(x) objfungrad(x, f, df);
+
+	case 4  % norm(p - ph)^2 s.t. constraints,   WITH  	 Constraint Gradients 
+		fun     = @(x) objfungrad(x, f, df);
+
+end
 % ce_rri
 % dce_rri
-% fun     = @(x) objfungrad(x, f, df);
-% fun     = @(x) objfungrad(x, Lx, DxLx);
-fun     = @(x) LM_obj_reg(reshape(x,size(Rini)));
 
 
-ce_rri2 = @(x) stiefConstraint(reshape(x,size(Rini)), 'dist');
-dce_rri2 = @(x)FDGradient(ce_rri2,x,gstep);
-nonlcon = @(x) confungrad(x, ce_rri2, dce_rri2);
 % nonlcon = @(x) confungrad(x, ce_rri, dce_rri);
 % nonlcon = @(x) confungrad(x, ce, dce);
 

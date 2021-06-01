@@ -411,9 +411,13 @@ function [x, fval, lambda, kkt, iterData] = almSolve(p, x0, lambda0, options, sl
             
             
             fprintf('ITERATION = %d\n', iter);
-
+            
+            if ~isfield(iterData, 'searchData'), prevTstamp = 0; ...
+            else prevTstamp = searchData.t_stamps(end); end
+            
+            
             [x, searchData] = almSearch(L, DxL, x, lambda, rho, Xtol, ... 
-                lb, ub, Xtol, alpha, miter, slradata);
+                lb, ub, Xtol, alpha, miter, slradata, prevTstamp);
 
             [kkt{1}, kkt{2}, kkt{3}] = KKT(x, lambda, rho);
 
@@ -421,10 +425,11 @@ function [x, fval, lambda, kkt, iterData] = almSolve(p, x0, lambda0, options, sl
                 cverg = true;
                 break;
             end
-            
+
+
             iterData.fval(iter)         = L(x, lambda, rho);
             iterData.x(:,iter)          = x;
-            iterData.lambda(:,iter)       = lambda;
+            iterData.lambda(:,iter)     = lambda;
             iterData.v(iter)            = v;
             iterData.rho(iter)          = rho;
             iterData.kkt(:,iter)        = kkt;

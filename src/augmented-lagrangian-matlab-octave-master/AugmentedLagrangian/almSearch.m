@@ -1,4 +1,4 @@
-function [x0, searchData] = almSearch(L, dL, x0, lambda, rho, omega, lb, ub, Xtol, alpha, miter, slradata)
+function [x0, searchData] = almSearch(L, dL, x0, lambda, rho, omega, lb, ub, Xtol, alpha, miter, slradata, prevTstamp)
     % ALMSEARCH Find a local minimum of a function using projected gradient descent and
     %           and golden section line search.
     %
@@ -17,6 +17,7 @@ function [x0, searchData] = almSearch(L, dL, x0, lambda, rho, omega, lb, ub, Xto
     iteration_num = 1;
     print_iters   = 0;
 %     while norm(x-x0) > TOL && iteration_num <= 12
+    tic
     while norm(x-x0) > TOL
         % projected gradient descent with projected line search
         a = x0;
@@ -48,9 +49,14 @@ function [x0, searchData] = almSearch(L, dL, x0, lambda, rho, omega, lb, ub, Xto
         end
         modNo = 4;
         if mod((iteration_num-1), modNo) == 0
+
+            if exist('searchData'), t_stamp = searchData.t_stamps(end) + toc; ...
+            else, t_stamp = prevTstamp + toc; end
+
+            
             print_iters = print_iters + 1;
-            R_alm0  = reshape(x0(slradata.np+1:end), size(slradata.Rini));
-            R_alm   = reshape(x(slradata.np+1:end), size(slradata.Rini));
+            R_alm0  = reshape(x0(slradata.npExt+1:end), size(slradata.Rini));
+            R_alm   = reshape(x(slradata.npExt+1:end), size(slradata.Rini));
 %             [~, M] = compare(iddata(slradata.y0, slradata.u0), idss(r2ss(R_alm, slradata.m_in, slradata.ell))); 
             [~, M0] = compare(iddata(slradata.y0, slradata.u0), idss(r2ss(R_alm0, slradata.m_in, slradata.ell))); 
 
@@ -67,15 +73,16 @@ function [x0, searchData] = almSearch(L, dL, x0, lambda, rho, omega, lb, ub, Xto
                 slradata.ce(x), ...
                 slradata.ce(x0));
 %             fprintf('       DP = %4.4f,        DP0 = %4.4f\n', ... 
-%                 norm(x(1:slradata.np) - slradata.p), ... 
-%                 norm(x0(1:slradata.np) - slradata.p));
+%                 norm(x(1:slradata.npExt) - slradata.p), ... 
+%                 norm(x0(1:slradata.npExt) - slradata.p));
             fprintf('       DP = %4.4f,        DP0 = %4.4f\n', ... 
-                norm(x(1:slradata.np) - slradata.p(~isinf(slradata.s.w))), ... 
-                norm(x0(1:slradata.np) - slradata.p(~isinf(slradata.s.w))));
+                norm(x(1:slradata.npExt) - slradata.p(~isinf(slradata.s.w))), ... 
+                norm(x0(1:slradata.npExt) - slradata.p(~isinf(slradata.s.w))));
 %             fprintf('       DPu = %4.4f,        DPu0 = %4.4f\n', ... 
 %                 norm(x(isinf(slradata.s.w)) - slradata.p(isinf(slradata.s.w))), ... 
 %                 norm(x0(isinf(slradata.s.w)) - slradata.p(isinf(slradata.s.w))) );
-            fprintf('                          M0 = %4.4f\n', ... 
+            fprintf('       t = %4.4f          M0 = %4.4f\n', ... 
+                t_stamp, ...                
                 mean(M0));
 %             fprintf('       M = %4.4f,         M0 = %4.4f\n', ... 
 %                 mean(M), ... 
@@ -84,13 +91,15 @@ function [x0, searchData] = almSearch(L, dL, x0, lambda, rho, omega, lb, ub, Xto
             searchData.Mslra(index)     = slra_mex_obj('func', slradata.obj, R_alm0);
             searchData.L(index)         = L(x0, lambda, rho);
             searchData.CE(:, index)        = slradata.ce(x0);
-%             searchData.DP(index)        = norm(x0(1:slradata.np) - slradata.p);
-            searchData.DP(index)        = norm(x0(1:slradata.np) - ...
+%             searchData.DP(index)        = norm(x0(1:slradata.npExt) - slradata.p);
+            searchData.DP(index)        = norm(x0(1:slradata.npExt) - ...
                                             slradata.p(~isinf(slradata.s.w)));
 %             searchData.DPu(index)       = norm(x0(isinf(slradata.s.w)) - ...
 %                                             slradata.p(isinf(slradata.s.w)));
             searchData.M(:, index)      = M0;
+            searchData.t_stamps(index)  = t_stamp;
             searchData.iters            = print_iters;
+            tic
         end
         iteration_num = iteration_num + 1;
     end

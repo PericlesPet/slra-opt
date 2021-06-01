@@ -35,6 +35,20 @@ pext2hankel = @(pext) pext(wtfdata.tts+1);
 x2hankel    = @(X) (wtfdata.s0 + pext2hankel(p2pext(X(1:np))));
 x2R         = @(X) (reshape(X(np+1:end), size(Rini)));
 
+    % Set Main Structs
+slradata.obj     = obj;
+slradata.np      = length(p);
+slradata.npExt   = length(wtfdata.p);
+slradata.p       = p;
+% slradata.ce     = problem.ce;
+slradata.Rini    = Rini;
+slradata.m_in    = m_in;
+slradata.p_out   = p_out;
+slradata.ell     = ell;
+slradata.y0      = y0;
+slradata.u0      = u0;
+slradata.s       = s;
+slradata.wtfdata = wtfdata;
 
 %%
 % Gradient Stepsize Parameter
