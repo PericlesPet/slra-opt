@@ -163,9 +163,9 @@ for interation_index=1:number_of_steps
     
 end
 panoc_t = toc % Alternatively, pan_toc
-
+%%
 f_all_evals = [f_evals; f_lbfgs_evals; f_prox_evals; taus]
-f_opt = f(Ropt);
+f_opt = f(R_opt); 
 R_panoc = reshape(x_steps(:,end), dimensions);
 
 % [condition_xIndices, fbeLowCond, fbeHighCond] = FBE_ConditionProcessing(condition_array, 1, 4);

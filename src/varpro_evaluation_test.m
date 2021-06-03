@@ -1,4 +1,8 @@
 % Perform up to "Data Generation" of slra_sw_example
+% Generally, series of operations:
+% slra_sw_example -> varpro_evaluation_test 
+% -> augLag/alm/almTest -> opt_algos/myFmincon 
+% 
 tic
 [w, s, r, opt, q, N, T] = sys2slra(w, m_in, ell, opt_mo);
 toc
