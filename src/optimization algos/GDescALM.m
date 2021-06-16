@@ -1,5 +1,5 @@
 function [logdata, data_opt, minf_log, x] = ...
-    myALM_GDesc(f, df, x0, options)
+    GDescALM(f, df, x0, options)
 
 x         = x0;
 maxIter     = options.maxIter; 

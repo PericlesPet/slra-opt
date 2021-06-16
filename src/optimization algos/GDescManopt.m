@@ -1,4 +1,4 @@
-function [logdata, dataOptId, f_log, minf_log] = myManoptGDesc(gdInput, opt, R_slramex)
+function [logdata, dataOptId, f_log, minf_log] = GDescManopt(gdInput, opt, R_slramex)
     %% Parameters
     clear logdata;
     Rin     = gdInput.Rin;

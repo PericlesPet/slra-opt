@@ -1,4 +1,4 @@
-function [logdata, dataOptId, f_log, minf_log] = myProjGDesc(gdInput, opt, R_slramex)
+function [logdata, dataOptId, f_log, minf_log] = GDesc(gdInput, opt, R_slramex)
     %% Parameters
     clear logdata;
     Rin     = gdInput.Rin;
@@ -49,15 +49,17 @@ function [logdata, dataOptId, f_log, minf_log] = myProjGDesc(gdInput, opt, R_slr
             end
         end
 
+
         %% Set G
+        if exist('g') prev_dir = sign(g); else prev_dir = zeros(size(Rin)); end
         g = slra_mex_obj('grad', obj, Rin);
-        g_proj = stiefel_proj(Rin, g);
         curr_dir = sign(g);
         if reg
             regularizer_grad =  2 *(Rin * Rin' - eye(size(Rin*Rin')))*Rin;
             g_reg = g + mu * regularizer_grad ;
         end
-    
+
+
         %% Every modVal iterations ...
         printData = 1;
         if (mod(i-1,modVal) == 0) && (printData == 1)
@@ -91,6 +93,7 @@ function [logdata, dataOptId, f_log, minf_log] = myProjGDesc(gdInput, opt, R_slr
             %     logdata(id).R_cond      = cond(Rin);
             %     logdata(id).gdDir_diff  = prev_dir - curr_dir;
 
+
             %% Log minimum
             if reg
                 if f_reg <= min_f
@@ -103,9 +106,9 @@ function [logdata, dataOptId, f_log, minf_log] = myProjGDesc(gdInput, opt, R_slr
                     min_f = f;
                 end
             end
-            
+
             %% Condition + Print
-            % logdata
+    %         logdata
             fprintf('ITERATION: %d, minF = %f, id = %d, t_stamp = %f \n', i, min_f, id, logdata.t_stamps(id));
             minf_log(id) = min_f;
             if (id >= 2 && extCond)
@@ -120,24 +123,20 @@ function [logdata, dataOptId, f_log, minf_log] = myProjGDesc(gdInput, opt, R_slr
             dataOptId = 1;
         end
 
-
-    
-    
-    %% GRADIENT STEP
         %% Update R
         stepsize_param = stepsize_factor/ceil(i/stepsize_update);
 
         if reg    
             Rin = Rin - stepsize_param * (gamma * g_reg) / (norm(gamma*g_reg)+constant_thing) ;
         else
-            % Gradient Step
-            Rin = Rin - stepsize_param * gamma * g / (norm(gamma*g));
-            % Projection
-            Rin = reshape(prox_g_indicator(Rin), size(Rin));
+            Rin = Rin - stepsize_param * gamma * g / (norm(gamma*g) + constant_thing)  ;
         end
+
     end
-    
+
     logdata.gamma   = gamma;
     logdata.reg     = reg;
     logdata.updateParams = [constant_thing;stepsize_factor;stepsize_update];
     logdata.comment = 'Update Params: constant_thing, stepsize_factor, stepsize_update';
+
+

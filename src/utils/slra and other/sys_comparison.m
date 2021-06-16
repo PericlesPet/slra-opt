@@ -1,22 +1,22 @@
-function M = sys_comparison(u, y, sys_ID, t_id, noPlot)
+function M = sys_comparison(u, y, sys_ID, plot, t_id)
 
-if exist('noPlot')
-    if noPlot
-        [Yh, M] = compare(iddata(y, u), idss(sys_ID)); 
+if exist('plot')
+    if plot
+        figure
+        compare(iddata(y, u), idss(sys_ID)); 
     end
-else
-    figure
-    compare(iddata(y, u), idss(sys_ID)); 
-    [Yh, M] = compare(iddata(y, u), idss(sys_ID)); 
 end
 
-if nargin>3
+[Yh, M] = compare(iddata(y, u), idss(sys_ID)); 
+
+
+if nargin>4
     X = sprintf('Time: %f\n', t_id);
     disp(X)
 end
 
-X = sprintf('Accuracy : %f\n', M);
-disp(X)
+fprintf('\nAvg. Acc:  %3.3f%%\n', mean(M));
+fprintf('Accuracy: [%3.3f%%]\n', M);
 
 
 end
