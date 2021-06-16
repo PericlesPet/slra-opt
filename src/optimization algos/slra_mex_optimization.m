@@ -77,7 +77,7 @@ prob.nonlcon = @(th) deal([], C(th));
 prob.options = optimset(prob.options, 'alg', 'sqp');
 [x, fval, flag, info] = fmincon(prob); 
 %%
-  
+
 info.fmin = fval;, info.Rh = th2R(x); 
 info.Th = Th; info.F = F;
 % [M, ph] = Mslra_ext(info.Rh, tts, p, [], bfs, phi, s0);
