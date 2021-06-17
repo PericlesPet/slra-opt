@@ -1,4 +1,4 @@
-function [logdata, data_opt, f_log] = myRegGDesc(Rin, maxIter, gamma, reg, opt, obj, R)
+function [logdata, data_opt, f_log] = GDescReg(Rin, maxIter, gamma, reg, opt, obj, R)
 %%
 clear logdata;
 

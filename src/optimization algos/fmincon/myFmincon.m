@@ -1,5 +1,23 @@
-%% Check slra M(R), L(x,R,Y), f(x) = norm(p-x)^2 THRU matlab's fmincon (nonlinear optimization)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This requires having already ran ALM (almTest, almSearch ...)
+% Check slra M(R), L(x,R,Y), f(x) = norm(p-x)^2 THRU matlab's fmincon (nonlinear optimization)
+% THIS SCRIPT PERFORMS OPTIMIZATION USING MATLAB'S FMINCON FUNCTION 
+% FOR VARIOUS SETTINGS:
+% 1: Optimize the ALM function, given the stiefel constraint R*R' = I 
+%       L(x) = @(x) L(x,lambda, c) = ...
+% 
+% 2: Optimize the SLRA Function, given the stiefel constraint R*R' = I
+%       M(R) = min( norm(p-phat)^2 ) over phat,   s.t. R*R' = I
+% 
+% 3: Optimize the initial function before VARPRO
+%       min( norm(p-phat)^2 ) over phat, R,   s.t. R*Hank(phat) = 0
+%                                                  R*R'         = I
+% 
+% 4: Same as 3 but provide the Constraint Gradients 
+%    and don't let Matlab calculate them
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 f   = checkdata.f;
 df  = checkdata.df;
 DxL = checkdata.DxL;
