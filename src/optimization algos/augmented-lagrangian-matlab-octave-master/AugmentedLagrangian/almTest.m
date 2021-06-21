@@ -12,7 +12,6 @@
 %   convergence.
 
 p_alm = 0;
-
 gma = 10;
 
  for alm_problem_init = 1
@@ -132,12 +131,12 @@ tic
     almSolve(problem, x0, lambda0, options, slradata);
 toc
 
-if ~exist('info1')
-    tic
-    [ph1, info1] = slra(p, s, r, opt)
-    toc
-    % accuracy_r = @(R)compare(iddata(slradata.y0, slradata.u0), idss(r2ss(R, slradata.m_in, slradata.ell))); 
-end
+% if ~exist('info1')
+%     tic
+%     [ph1, info1] = slra(p, s, r, opt)
+%     toc
+%     % accuracy_r = @(R)compare(iddata(slradata.y0, slradata.u0), idss(r2ss(R, slradata.m_in, slradata.ell))); 
+% end
 
 almVisualize
 

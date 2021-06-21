@@ -1,213 +1,402 @@
-
-% selectVisualize:
-% 1 :   Gradient Descent Data
+% Script for All Data Visualizations
+% select Visual:
+% 1 :   gradient descent Data
 % 2 :   myFmincon        Data
 % 3 :   fminlbfgs        Data 
-selectVisualize = 3;
+% 4 :   panoc            Data
+% 5 :   alm              Data
 
-switch selectVisualize
+close all
+clc
 
-    case 1
-        
-        % Proj Data
-        max(mean(gdProjData.M(:,:)));
-        semilogy(gdProjData.residual_R)
-        plot(gdProjData.t_stamps, gdProjData.f)
-        plot(gdProjData.t_stamps, gdProjData.M)
-        line([t_slra t_slra], [86 100], 'Color', 'r')
-        line([0 7], [gdProjData.Mopt(1) gdProjData.Mopt(1)], 'Color', 'r')
-        line([0 7], [gdProjData.Mopt(2) gdProjData.Mopt(2)], 'Color', 'r')
-        plot(info.iterinfo(1,:), info.iterinfo(2,:))
-        hold on 
-        plot(gdProjData.t_stamps, gdProjData.f)
-
-
-
-        % Reg Data
-        plot(info.iterinfo(1,:), info.iterinfo(2,:))
-        hold on 
-        plot(gdRegData.t_stamps, gdRegData.f)
-
-
-    case 2
-        
-    %% FROM myFMINCON
-    % %% VISUALIZE FVALS, SLRA, CONSTRAINTS, AND ACCURACY. ALSO COMPARE TO OPTIMAL SLRA_MEX VALUES
-    % ----> dataVisualize 2ND PART
-
-    % fminconData = fminconData_aLM;
-    % fminconData = fminconData_gdTrue;
-    % fminconData = fminconData_gdfalse;
-    fminconData = fminconData_slraVSslra
-    use_iter = 0;
-    if ~isfield(fminconData, 't_stamps'), ...
-            fminconData.t_stamps = 1:length(fminconData.f_slra_val); use_iter = 1;end
-
-
-    set(0,'DefaultLegendAutoUpdate','off')
-    figure
-    subplot(2,2,1)
-    plot(fminconData.t_stamps, fminconData.f_slra_val)
-    title('SLRA M(R)')
-    hold on
-    if ~use_iter, plot(info.iterinfo(1,:), info.iterinfo(2,:), 'r--'), else ...
-        plot(1:length(info.iterinfo(1,:)), info.iterinfo(2,:), 'r--'), end
-    line([0 fminconData.t_stamps(end)], [f_slra f_slra], 'Color', 'r')
-    legend('fmincon', 'slra mex', 'optimum point')
-
-    subplot(2,2,2)
-    for ii = 1:size(fminconData.CE, 1)    
-        semilogy(fminconData.t_stamps, fminconData.CE(ii,:))
-        hold on
-    end
-    % hold on
-    % semilogy(fminconData.CE(2,:))
-    title('Constraints')
-    if size(fminconData.CE, 1) == 1
-        legend('RR^T - I_N = 0 Const.')
+    % Load ALL Data
+all_files = dir(fullfile('data\final Data\','*.mat'));
+for i = 1:numel(all_files)
+    if ~exist(all_files(i).name(1:end-4))
+        file_path = [all_files(i).folder '\' all_files(i).name];
+        fprintf('Loading: %s \n',file_path);
+        load(file_path)
     else
-        legend('R*Hank(p_{hat}) = 0 Const.', 'RR^T - I_N = 0 Const.')
+        fprintf('Already Loaded: %s \n',all_files(i).name(1:end));
     end
+end
 
-    subplot(2,2,3)
-    plot(fminconData.t_stamps, fminconData.fvals)
-    title('Fvals')
+% info_ident = 1;
 
-    subplot(2,2,4)
-    plot(fminconData.t_stamps, max(fminconData.M0, -100), 'b')
-    % ylim([-200 100])
-    title('Accuracy (%)')
-    if size(fminconData.M0, 1) == 2
-        line([0 fminconData.t_stamps(end)], ...
-            [M_slra(1) M_slra(1)], 'Color', 'r')
-        line([0 fminconData.t_stamps(end)], ...
-            [M_slra(2) M_slra(2)], 'Color', 'r')
-        legend('accuracy for y1', 'accuracy for y2', 'slra best accuracy for y1','slra best accuracy for y2')
-    else
-        line([0 fminconData.t_stamps(end)], ...
-            [mean(M_slra) mean(M_slra)], 'Color', 'r')
-        legend('accuracy for fmincon', 'slra best accuracy')
-    end
+for selectVisual = 1:5
+    switch selectVisual
 
-    % subplot(2,2,3)
-    % plot(fminconData.f_slra_val)
+        case 1
+        %% FROM GD
+            gdXlim = 2;
 
-    %% VISUALIZE DIFFERENCE BETWEEN FVALS, SLRA, AND CONSTRAINTS (PROBABLY USELESS)
-    for visualizeDiff = 1
-        figure
-        %%%%% SLRA %%%%%
-        subplot(2,2,1)
-        plot(fminconData.t_stamps, fminconData.f_slra_val)
-        title('SLRA M(R)')
-        hold on
-        if ~use_iter, plot(info.iterinfo(1,:), info.iterinfo(2,:), 'r--'), else ...
-            plot(1:length(info.iterinfo(1,:)), info.iterinfo(2,:), 'r--'), end
-        line([0 fminconData.t_stamps(end)], [f_slra f_slra], 'Color', 'r')
-        legend('fmincon', 'slra mex', 'optimum point')
+            for selectGDesc = 1:4
+                if selectGDesc == 1
+                    gdescData   = gdData;    
+                    gdescTitle  = 'Simple Gradient Descent';
+                elseif selectGDesc == 2
+                    gdescData   = gdRegData;    
+                    gdescTitle  = 'Regularized Gradient Descent';
+                elseif selectGDesc == 3
+                    gdescData   = gdManoptData;    
+                    gdescTitle  = 'ManOpt-like Gradient Descent';
+                elseif selectGDesc == 4
+                    gdescData   = gdProjData;    
+                    gdescTitle  = 'Stiefel-Projected Gradient Descent';
+                end
 
-        %%%%% FVALS %%%%%
-        subplot(2,2,3)
-        plot(fminconData.t_stamps, 2*fminconData.fvals)
-        title('Fvals')
+                use_iter = 0;
+                if ~isfield(gdescData, 't_stamps'), ...
+                        gdescData.t_stamps = 1:length(gdescData.f); use_iter = 1;end
+                set(0,'DefaultLegendAutoUpdate','off')
 
-        %%%%% SLRA - FVALS %%%%%
-        subplot(2,2,2)
-        plot(fminconData.t_stamps, fminconData.f_slra_val-2*fminconData.fvals)
-        title('SLRA - Fvals')
+                figure
+                subplot(3,1,1)
+                plot(gdescData.t_stamps, gdescData.f)
+                title('SLRA M(R)')
+                hold on
+                if ~use_iter, plot(info_ident.iterinfo(1,:), info_ident.iterinfo(2,:), 'r--'), else ...
+                    plot(1:length(info_ident.iterinfo(1,:)), info_ident.iterinfo(2,:), 'r--'), end
+                line([0 gdescData.t_stamps(end)], [f_slra f_slra], 'Color', 'r')
+                legend('GD', 'slra mex', 'optimum point')
+                xlim([0 gdXlim])
+                xlabel('t (seconds)')
 
-        %%%%% CONSTRAINTS%%%%%
-        subplot(2,2,4)
-        for ii = 1:size(fminconData.CE, 1)    
-            semilogy(fminconData.t_stamps, fminconData.CE(ii,:))
+                subplot(3,1,2)
+                for ii = 1:size(gdescData.residual_R, 1)    
+                    semilogy(gdescData.t_stamps, gdescData.residual_R(ii,:))
+                    hold on
+                end
+                % hold on
+                % semilogy(gdescData.CE(2,:))
+                title('Constraints')
+                if size(gdescData.residual_R, 1) == 1
+                    legend('RR^T - I_N = 0 Const.')
+                else
+                    legend('R*Hank(p_{hat}) = 0 Const.', 'RR^T - I_N = 0 Const.')
+                end
+                xlim([0 gdXlim])
+                xlabel('t (seconds)')
+
+            %     subplot(2,2,3)
+            %     plot(gdescData.t_stamps, gdescData.fvals)
+            %     title('Fvals')
+
+                subplot(3,1,3)
+                plot(gdescData.t_stamps, max(gdescData.M, -100), 'b')
+                % ylim([-200 100])
+                title('Accuracy (%)')
+                if size(gdescData.M, 1) == 2
+                    line([0 gdescData.t_stamps(end)], ...
+                        [M_slra(1) M_slra(1)], 'Color', 'r')
+                    line([0 gdescData.t_stamps(end)], ...
+                        [M_slra(2) M_slra(2)], 'Color', 'r')
+                    legend('accuracy for y1', 'accuracy for y2', 'slra best accuracy for y1','slra best accuracy for y2')
+                else
+                    line([0 gdescData.t_stamps(end)], ...
+                        [mean(M_slra) mean(M_slra)], 'Color', 'r')
+                    legend('accuracy for fmincon', 'slra best accuracy')
+                end
+                xlim([0 gdXlim])
+                xlabel('t (seconds)')
+
+                suptitle(gdescTitle)
+            end
+
+
+        case 2
+        %% FROM myFMINCON
+
+        % %% VISUALIZE FVALS, SLRA, CONSTRAINTS, AND ACCURACY. ALSO COMPARE TO OPTIMAL SLRA_MEX VALUES
+        % ----> dataVisualize 2ND PART
+
+
+        for selectFminconFunc = 1:4
+            if selectFminconFunc == 1
+                fminconData = fminconData_aLM;
+                fminconTitle = 'Matlab Fmincon for: L(x,R) s.t. RR^{T} - I = 0, compared to C SLRA';
+            elseif selectFminconFunc == 2
+                fminconData = fminconData_gdTrue;
+                fminconTitle = 'Matlab Fmincon for: f(x) = |p-x|^{2} s.t. both constraints, compared to C SLRA';
+            elseif selectFminconFunc == 3
+                fminconData = fminconData_gdfalse;
+                fminconTitle = 'Matlab Fmincon for: f(x) = |p-x|^{2} s.t. both constraints, compared to C SLRA';
+            elseif selectFminconFunc == 4
+                fminconData = fminconData_slraVSslra;
+                fminconTitle = 'Matlab Fmincon for: M(R) s.t. RR^{T} - I = 0, compared to C SLRA';
+            end
+
+
+            use_iter = 0;
+            if ~isfield(fminconData, 't_stamps'), ...
+                    fminconData.t_stamps = 1:length(fminconData.f_slra_val); use_iter = 1;end
+
+
+            set(0,'DefaultLegendAutoUpdate','off')
+            figure
+            subplot(2,2,1)
+            plot(fminconData.t_stamps, fminconData.f_slra_val)
+            title('SLRA M(R)')
             hold on
+            if ~use_iter, plot(info_ident.iterinfo(1,:), info_ident.iterinfo(2,:), 'r--'), else ...
+                plot(1:length(info_ident.iterinfo(1,:)), info_ident.iterinfo(2,:), 'r--'), end
+            line([0 fminconData.t_stamps(end)], [f_slra f_slra], 'Color', 'r')
+            legend('fmincon', 'slra mex', 'optimum point')
+            xlabel('t (seconds)')
+
+            subplot(2,2,2)
+            for ii = 1:size(fminconData.CE, 1)    
+                semilogy(fminconData.t_stamps, fminconData.CE(ii,:))
+                hold on
+            end
+            % hold on
+            % semilogy(fminconData.CE(2,:))
+            title('Constraints')
+            if size(fminconData.CE, 1) == 1
+                legend('RR^T - I_N = 0 Const.')
+            else
+                legend('R*Hank(p_{hat}) = 0 Const.', 'RR^T - I_N = 0 Const.')
+            end
+            xlabel('t (seconds)')
+
+            subplot(2,2,3)
+            plot(fminconData.t_stamps, fminconData.fvals)
+            title('Fvals')
+            xlabel('t (seconds)')
+
+            subplot(2,2,4)
+            plot(fminconData.t_stamps, max(fminconData.M0, -100), 'b')
+            % ylim([-200 100])
+            title('Accuracy (%)')
+            if size(fminconData.M0, 1) == 2
+                line([0 fminconData.t_stamps(end)], ...
+                    [M_slra(1) M_slra(1)], 'Color', 'r')
+                line([0 fminconData.t_stamps(end)], ...
+                    [M_slra(2) M_slra(2)], 'Color', 'r')
+                legend('accuracy for y1', 'accuracy for y2', 'slra best accuracy for y1','slra best accuracy for y2')
+            else
+                line([0 fminconData.t_stamps(end)], ...
+                    [mean(M_slra) mean(M_slra)], 'Color', 'r')
+                legend('accuracy for fmincon', 'slra best accuracy')
+            end
+            xlabel('t (seconds)')
+            suptitle(fminconTitle)
         end
-        % hold on
-        % semilogy(fminconData.CE(2,:))
-        title('Constraints')
-        if size(fminconData.CE, 1) == 1
-            legend('RR^T - I_N = 0 Const.')
-        else
-            legend('R*Hank(p_{hat}) = 0 Const.', 'RR^T - I_N = 0 Const.')
-        end
-    end
-
-    
-    
-    case 3
-    %% VISUALIZE FMINLBFGS 
-    % (difference: 2 Xs / f_vals for lbfgs and prox 
-    % --> data.fvals_fminlbfgs      / Xs_lbfgs
-    % --> data.fvals_fminlbfgsProx  / Xs_prox
-    
-    % %% VISUALIZE FVALS, SLRA, CONSTRAINTS, AND ACCURACY. ALSO COMPARE TO OPTIMAL SLRA_MEX VALUES 
-    % ----> dataVisualize 2ND PART
-
-        % fminconData = fminconData_aLM;
-        % fminconData = fminconData_gdTrue;
-%         fminconData = fminconData_gdfalse;
-        lbfgsData = fminlbfgsData
-        use_iter = 0;
-        if ~isfield(lbfgsData, 't_stamps'), ...
-                lbfgsData.t_stamps = 1:length(lbfgsData.f_slra_val); use_iter = 1;end
-
-
-        set(0,'DefaultLegendAutoUpdate','off')
-        figure
-        subplot(2,2,1)
-        plot(lbfgsData.t_stamps, lbfgsData.f_slra_val)
-        title('SLRA M(R)')
-        hold on
-        if ~use_iter, plot(info.iterinfo(1,:), info.iterinfo(2,:), 'r--'), else ...
-            plot(1:length(info.iterinfo(1,:)), info.iterinfo(2,:), 'r--'), end
-        line([0 lbfgsData.t_stamps(end)], [f_slra f_slra], 'Color', 'r')
-        legend('fmincon', 'slra mex', 'optimal slra')
-        ylabel('M(R)')
-        xlabel('t (seconds)')
-
-        subplot(2,2,2)
-        for ii = 1:size(lbfgsData.CE, 1)    
-            semilogy(lbfgsData.t_stamps, lbfgsData.CE(ii,:))
-            hold on
-        end
-        % hold on
-        % semilogy(lbfgsData.CE(2,:))
-        title('Constraints')
-        if size(lbfgsData.CE, 1) == 1
-            legend('RR^T - I_N = 0 Const.')
-        else
-            legend('R*Hank(p_{hat}) = 0 Const.', 'RR^T - I_N = 0 Const.')
-        end
-        xlabel('t (seconds)')
-
-        subplot(2,2,3)
-        plot(lbfgsData.t_stamps, lbfgsData.fvals)
-        title('Fvals')
-        ylabel('f(x)')
-        xlabel('t (seconds)')
-
-        subplot(2,2,4)
-        plot(lbfgsData.t_stamps, max(lbfgsData.M0, -100), 'b')
-        % ylim([-200 100])
-        title('Accuracy (%)')
-        if size(lbfgsData.M0, 1) == 2
-            line([0 lbfgsData.t_stamps(end)], ...
-                [M_slra(1) M_slra(1)], 'Color', 'r')
-            line([0 lbfgsData.t_stamps(end)], ...
-                [M_slra(2) M_slra(2)], 'Color', 'r')
-            legend('accuracy for y1', 'accuracy for y2', 'slra best accuracy for y1','slra best accuracy for y2')
-        else
-            line([0 lbfgsData.t_stamps(end)], ...
-                [mean(M_slra) mean(M_slra)], 'Color', 'r')
-            legend('accuracy for fmincon', 'slra best accuracy')
-        end
-        ylabel('accuracy (%)')
-        xlabel('t (seconds)')
 
         % subplot(2,2,3)
-        % plot(lbfgsData.f_slra_val)
+        % plot(fminconData.f_slra_val)
+
+        % VISUALIZE DIFFERENCE BETWEEN FVALS, SLRA, AND CONSTRAINTS (PROBABLY USELESS)
+    %     
+    %     for visualizeDiff = 1
+    %         figure
+    %         %%%%% SLRA %%%%%
+    %         subplot(2,2,1)
+    %         plot(fminconData.t_stamps, fminconData.f_slra_val)
+    %         title('SLRA M(R)')
+    %         hold on
+    %         if ~use_iter, plot(info_mex.iterinfo(1,:), info_mex.iterinfo(2,:), 'r--'), else ...
+    %             plot(1:length(info_mex.iterinfo(1,:)), info_mex.iterinfo(2,:), 'r--'), end
+    %         line([0 fminconData.t_stamps(end)], [f_slra f_slra], 'Color', 'r')
+    %         legend('fmincon', 'slra mex', 'optimum point')
+    % 
+    %         %%%%% FVALS %%%%%
+    %         subplot(2,2,3)
+    %         plot(fminconData.t_stamps, 2*fminconData.fvals)
+    %         title('Fvals')
+    % 
+    %         %%%%% SLRA - FVALS %%%%%
+    %         subplot(2,2,2)
+    %         plot(fminconData.t_stamps, fminconData.f_slra_val-2*fminconData.fvals)
+    %         title('SLRA - Fvals')
+    % 
+    %         %%%%% CONSTRAINTS%%%%%
+    %         subplot(2,2,4)
+    %         for ii = 1:size(fminconData.CE, 1)    
+    %             semilogy(fminconData.t_stamps, fminconData.CE(ii,:))
+    %             hold on
+    %         end
+    %         % hold on
+    %         % semilogy(fminconData.CE(2,:))
+    %         title('Constraints')
+    %         if size(fminconData.CE, 1) == 1
+    %             legend('RR^T - I_N = 0 Const.')
+    %         else
+    %             legend('R*Hank(p_{hat}) = 0 Const.', 'RR^T - I_N = 0 Const.')
+    %         end
+    %     end
+
+
+
+        case 3
+        %% FROM FMINLBFGS 
+
+        % %% VISUALIZE FVALS, SLRA, CONSTRAINTS, AND ACCURACY. ALSO COMPARE TO OPTIMAL SLRA_MEX VALUES 
+            for selectFminlbfgs = 1:2
+                if selectFminlbfgs == 1
+                    fminlbfgsData = fminlbfgsData_simple;
+                    fminlbfgsTitle = 'fminlbfgs for M(R), compared to C SLRA';
+                elseif selectFminlbfgs == 2
+                    fminlbfgsData = fminlbfgsData_prox;
+                    fminlbfgsTitle = 'fminlbfgs for M(R) with alternating proximal updates, compared to C SLRA';
+                end
+
+                use_iter = 0;
+                if ~isfield(fminlbfgsData, 't_stamps'), ...
+                        fminlbfgsData.t_stamps = 1:length(fminlbfgsData.f_slra_val); use_iter = 1;end
+
+
+                set(0,'DefaultLegendAutoUpdate','off')
+                figure
+                subplot(2,2,1)
+                plot(fminlbfgsData.t_stamps, fminlbfgsData.f_slra_val)
+                title('SLRA M(R)')
+                hold on
+                if ~use_iter, plot(info_ident.iterinfo(1,:), info_ident.iterinfo(2,:), 'r--'), else ...
+                    plot(1:length(info_ident.iterinfo(1,:)), info_ident.iterinfo(2,:), 'r--'), end
+                line([0 fminlbfgsData.t_stamps(end)], [f_slra f_slra], 'Color', 'r')
+                legend('fmincon', 'slra mex', 'optimal slra')
+                ylabel('M(R)')
+                xlabel('t (seconds)')
+
+                subplot(2,2,2)
+                for ii = 1:size(fminlbfgsData.CE, 1)    
+                    semilogy(fminlbfgsData.t_stamps, fminlbfgsData.CE(ii,:))
+                    hold on
+                end
+                % hold on
+                % semilogy(lbfgsData.CE(2,:))
+                title('Constraints')
+                if size(fminlbfgsData.CE, 1) == 1
+                    legend('RR^T - I_N = 0 Const.')
+                else
+                    legend('R*Hank(p_{hat}) = 0 Const.', 'RR^T - I_N = 0 Const.')
+                end
+                xlabel('t (seconds)')
+
+                subplot(2,2,3)
+                plot(fminlbfgsData.t_stamps, fminlbfgsData.fvals)
+                title('Fvals')
+                ylabel('f(x)')
+                xlabel('t (seconds)')
+
+                subplot(2,2,4)
+                plot(fminlbfgsData.t_stamps, max(fminlbfgsData.M0, -100), 'b')
+                % ylim([-200 100])
+                title('Accuracy (%)')
+                if size(fminlbfgsData.M0, 1) == 2
+                    line([0 fminlbfgsData.t_stamps(end)], ...
+                        [M_slra(1) M_slra(1)], 'Color', 'r')
+                    line([0 fminlbfgsData.t_stamps(end)], ...
+                        [M_slra(2) M_slra(2)], 'Color', 'r')
+                    legend('accuracy for y1', 'accuracy for y2', 'slra best accuracy for y1','slra best accuracy for y2')
+                else
+                    line([0 fminlbfgsData.t_stamps(end)], ...
+                        [mean(M_slra) mean(M_slra)], 'Color', 'r')
+                    legend('accuracy for fmincon', 'slra best accuracy')
+                end
+                ylabel('accuracy (%)')
+                xlabel('t (seconds)')
+
+                suptitle(fminlbfgsTitle)
+            end
+
+        case 4
+        %% FROM PANOC 
+        % VISUALIZE FVALS, SLRA, CONSTRAINTS, AND ACCURACY. ALSO COMPARE TO OPTIMAL SLRA_MEX VALUES 
+
+            for i = 1:2
+
+                isFMINLBFGS = i - 1;   % If using simple lbfgs or fminlbfgs
+
+                if isFMINLBFGS, panocData   = panocFminlbfgsData; else, ...
+                        panocData = panocLbfgsData;end
+
+                use_iter    = 0;
+                if ~isfield(panocData, 't_stamps'), ...
+                        panocData.t_stamps = 1:length(panocData.f_slra_val); use_iter = 1;end
+
+
+                set(0,'DefaultLegendAutoUpdate','off')
+                figure
+                subplot(2,2,1)
+                plot(panocData.t_stamps, panocData.f_slra_val)
+                title('SLRA M(R)')
+                hold on
+                if ~use_iter, plot(info_ident.iterinfo(1,:), info_ident.iterinfo(2,:), 'r--'), else ...
+                    plot(1:length(info_ident.iterinfo(1,:)), info_ident.iterinfo(2,:), 'r--'), end
+                line([0 panocData.t_stamps(end)], [f_slra f_slra], 'Color', 'r')
+
+                if ~isFMINLBFGS, legend('panoc_{lbfgs}', 'slra mex', 'optimal slra'), else ...
+                        legend('panoc_{fminlbfgs}', 'slra mex', 'optimal slra'),end
+
+
+                ylabel('M(R)')
+                xlabel('t (seconds)')
+
+                subplot(2,2,2)
+                for ii = 1:size(panocData.CE, 1)    
+                    semilogy(panocData.t_stamps, panocData.CE(ii,:))
+                    hold on
+                end
+                % hold on
+                % semilogy(lbfgsData.CE(2,:))
+                title('Constraints')
+                if size(panocData.CE, 1) == 1
+                    legend('RR^T - I_N = 0 Const.')
+                else
+                    legend('R*Hank(p_{hat}) = 0 Const.', 'RR^T - I_N = 0 Const.')
+                end
+                xlabel('t (seconds)')
+
+                subplot(2,2,3)
+                plot(panocData.t_stamps, panocData.fvals)
+                title('Fvals')
+                ylabel('f(x)')
+                xlabel('t (seconds)')
+
+                subplot(2,2,4)
+                plot(panocData.t_stamps, max(panocData.M0, -100), 'b')
+                % ylim([-200 100])
+                title('Accuracy (%)')
+                if size(panocData.M0, 1) == 2
+                    line([0 panocData.t_stamps(end)], ...
+                        [M_slra(1) M_slra(1)], 'Color', 'r')
+                    line([0 panocData.t_stamps(end)], ...
+                        [M_slra(2) M_slra(2)], 'Color', 'r')
+                    legend('accuracy for y1', 'accuracy for y2', 'slra best accuracy for y1','slra best accuracy for y2')
+                else
+                    line([0 panocData.t_stamps(end)], ...
+                        [mean(M_slra) mean(M_slra)], 'Color', 'r')
+                    legend('accuracy for panoc_{lbfgs}', 'slra best accuracy')
+                end
+                ylabel('accuracy (%)')
+                xlabel('t (seconds)')
+
+                if isFMINLBFGS, suptitle('PANOC with FMINLBFGS, compared to C SLRA'), else ...
+                        suptitle('PANOC with simple LBFGS, compared to C SLRA'),end
+
+
+
+
+                % subplot(2,2,3)
+                % plot(lbfgsData.f_slra_val)
+            end
+
+        case 5 
+        %% FROM ALM
+        plotALMdata = almData;
+        almVisualize;
+
+    end
 end
 
 
-        
-        
+
+
+
+
+
+
+
         

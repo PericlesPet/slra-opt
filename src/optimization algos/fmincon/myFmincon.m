@@ -140,9 +140,6 @@ min(fminconData.f_slra_val)
 max(mean((fminconData.M0)))
 beep on
 beep 
-%% VISUALIZE FVALS, SLRA, CONSTRAINTS, AND ACCURACY. ALSO COMPARE TO OPTIMAL SLRA_MEX VALUES
-% ----> dataVisualize 2ND PART
-
 
 
 %% CHECK SLRA ACCURACY

@@ -6,7 +6,7 @@ dimension = dimensions(1) * dimensions(2);
 Rkern = @(x) reshape(x, dimensions);
 
 
-% ASSIGN F
+    % ASSIGN F
 f   = @(x) slra_mex_obj('func', obj, Rkern(x));
 if nargin == 4     % IF A MODE IS SELECTED
 %% REGULARIZED  
@@ -19,7 +19,7 @@ if nargin == 4     % IF A MODE IS SELECTED
     end
 end
 
-% ASSIGN DF IF NECESSARY
+    % ASSIGN DF IF NECESSARY
 if nargout > 1
     df  = @(x) reshape(slra_mex_obj('grad', obj, Rkern(x)), dimension , 1);
     

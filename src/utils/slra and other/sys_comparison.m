@@ -8,15 +8,15 @@ if exist('plot')
 end
 
 [Yh, M] = compare(iddata(y, u), idss(sys_ID)); 
+M = max(M, -100);
 
 
-if nargin>4
-    X = sprintf('Time: %f\n', t_id);
-    disp(X)
-end
-
-fprintf('\nAvg. Acc:  %3.3f%%\n', mean(M));
+fprintf('Avg. Acc:  %3.3f%%\n', mean(M));
 fprintf('Accuracy: [%3.3f%%]\n', M);
+if nargin>4
+    fprintf('Sys Accuracy Time: %f\n', t_id);
+end
+fprintf('\n');
 
 
 end

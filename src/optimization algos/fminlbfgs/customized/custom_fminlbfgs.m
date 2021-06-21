@@ -1,32 +1,29 @@
 %% Objective Params
+close all
+clc
 mu = opt.g;
 R_lm0 = Rini;
-% LM_obj = @(R_lm) slra_mex_obj('func', obj, R_lm);
-% LM_obj_reg = @(th) slra_mex_obj('func', obj, th2R(th)) ...
-%                          + mu * norm(C(th), 'fro') ^ 2;
+
 th_format.active    = 0;
 th_format.PhiS_mat  = phi * (s0 + pext(tts + 1));
 th_format.psi       = psi;    
 
-% %% Problem Formulation
+    % Problem Formulation
 if th_format.active
     LM_obj_reg = @(th) varproFuncAndGrad(obj, th2R(th), mu, 1, th_format);
     x0 = R2th(R_lm0, phi * (s0 + pext(tts + 1)), psi, opt.R0);
 else                                           % Reg = 0
     LM_obj_reg = @(R) SLRA_FuncAndGrad_vals(obj, mu, dimensions, R, 'reg');
-    
     x0 = R_lm0;
-%     x0 = Rkung;
 end
 
-% problem_lm.objective = LM_obj;
 problem_lm.objective = LM_obj_reg;
 problem_lm.x0 = x0;
 
 % %% FminLBFGS Params
-fminlbfgs_iterations    = 200;
-pcntImproveThresh       = 0.5;
-useNoise                = 0;
+fminlbfgs_iterations    = 400;
+pcntImproveThresh       = 1.0;
+selectUpdate            = 1;
 noiseLevel              = 0.00000;
 displayComparisons      = 0;
 
@@ -35,23 +32,26 @@ f_fminlbfgs_vals        = zeros(1, fminlbfgs_iterations);
 f_fminlbfgs_prox_vals   = zeros(1, fminlbfgs_iterations);
 test_fs                 = zeros(1, fminlbfgs_iterations);
 
-% %% fminlbfgs - lbfgs - GradConstr = false 
-clear fminlbfgsData
 
-options = struct('GradObj','on','Display','iter','LargeScale','off','HessUpdate','lbfgs', ...
+    % ITERATE
+    % fminlbfgs - lbfgs - GradConstr = false 
+clear fminlbfgsData    
+    % About Display: 'off', 'iter', 'final', 'plot'
+dsplLvl = 'off';
+options = struct('GradObj','on','Display',dsplLvl,'LargeScale','off','HessUpdate','lbfgs', ...
     'InitialHessType','identity','GoalsExactAchieve',1,'GradConstr',false, 'MaxIter', fminlbfgs_iterations);
 
 % [exitflag, grad, data, optim] = fminlbfgs_data_init(LM_obj_reg,x0,options);
 [exitflag, grad, data, optim] = fminlbfgs_data_init(LM_obj_reg,R_lm0,options);
 % [exitflag, grad, data, optim] = fminlbfgs_data_init(LM_obj_reg,Rkung,options);
 index = 1;
-for i = 1:fminlbfgs_iterations-2
+for i = 1:fminlbfgs_iterations
 
+    tic
     % STORE PREVIOUS X VALUE, X_PREV
     if ~exist('x_lbfgs'), x_prev = R_lm0(:); else, x_prev = data.xInitial; end
     if ~isfield(data, 'dir'), dir_prev = zeros(size(x_prev)); else, dir_prev = data.dir; end
     
-    tic
     % UPDATE X VIA FminLBFGS
     [x_lbfgs,fval_lbfgs,exitflag,output, grad, data] = ...
         fminlbfgs_iteration_split1(LM_obj_reg, optim, data, exitflag, 0);
@@ -59,7 +59,7 @@ for i = 1:fminlbfgs_iterations-2
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     fminlbfgsData.Xs_lbfgs(:, index)        = x_lbfgs(:);
-    fminlbfgsData.fvals_fminlbfgs(index)    = fval_lbfgs; 
+    fminlbfgsData.fvals_lbfgs(index)    = fval_lbfgs; 
 
 %     x_fminlbfgs_steps(:, i) = x_lbfgs(:);
 %     f_fminlbfgs_vals(i) = fval_lbfgs;
@@ -68,20 +68,22 @@ for i = 1:fminlbfgs_iterations-2
 
     % Update X, Direction, 
     xInitial_prev = data.xInitial;
-    if useNoise
+    if selectUpdate == 0
+        fprintf('Update fminlbfgs with random noise (to check robustness)\n');
         data.xInitial = x_lbfgs(:) + noiseLevel * randn(size(data.xInitial));
         data.dir = (data.xInitial - x_prev);        
         step_prox = x_lbfgs(:) - data.xInitial(:);
         potential_x = data.xInitial;
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        fminlbfgsData.fvals_fminlbfgsProx(index) = f(potential_x);
+        fminlbfgsData.fvals_prox(index) = f(potential_x);
         fminlbfgsData.Xs_prox(:, index)          = potential_x(:);
-%         f_fminlbfgs_prox_vals(i) = f(potential_x);
+        %         f_fminlbfgs_prox_vals(i) = f(potential_x);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    else % Update via PROX
+    elseif selectUpdate == 1 % Update via PROX
+        %         fprintf('Update fminlbfgs with proximal step\n');
         [x_prox_grad_descent,new_gamma] = prox_grad_descent_step( x_lbfgs(:),gamma,beta_safety_value,proxg,f,df );
         gamma=new_gamma;
         step_prox = (x_lbfgs(:)-x_prox_grad_descent);
@@ -89,13 +91,13 @@ for i = 1:fminlbfgs_iterations-2
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        fminlbfgsData.fvals_fminlbfgsProx(index) = f(potential_x);
+        fminlbfgsData.fvals_prox(index) = f(potential_x);
         fminlbfgsData.Xs_prox(:, index)          = potential_x(:);
 %         f_fminlbfgs_prox_vals(i) = f(potential_x);
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        prcnt_change = (fminlbfgsData.fvals_fminlbfgs(i) - fminlbfgsData.fvals_fminlbfgsProx(i)) ./ (fminlbfgsData.fvals_fminlbfgs(i)) * 100 ;
+        prcnt_change = (fminlbfgsData.fvals_lbfgs(i) - fminlbfgsData.fvals_prox(i)) ./ (fminlbfgsData.fvals_lbfgs(i)) * 100 ;
 
         if prcnt_change >= pcntImproveThresh
             data.xInitial = potential_x;
@@ -137,6 +139,9 @@ for i = 1:fminlbfgs_iterations-2
         idss(r2ss(R_fminlbfgs, slradata.m_in, slradata.ell))); 
     fminlbfgsData.Xs(:, index)               = x_lbfgs(:);
     fminlbfgsData.fvals(index)               = fval_lbfgs; 
+    if selectUpdate ~= 1
+        fminlbfgsData.fvals_prox(index) = 0;
+    end
     %     fminconData.M0(index)               = mean(M0);
     fminlbfgsData.M0(:,index)                = M0;
     fminlbfgsData.f_slra_val(index)          = slra_mex_obj('func', obj, R_fminlbfgs);
@@ -149,24 +154,39 @@ for i = 1:fminlbfgs_iterations-2
 
     
     
+    if mod(i, 20) == 0
+        fprintf('f(%d) = %f  -  t = %f  -  Accuracy = %f\n', ...
+            i, panocLbfgsData.fvals(i),t_stamp, mean(M0)); end
+
+
     
 end
 
-check1 = [fminlbfgsData.fvals_fminlbfgs; ...
-        fminlbfgsData.fvals_fminlbfgsProx];
 
-check2 = [fminlbfgsData.fvals_fminlbfgs; ...
-        fminlbfgsData.fvals_fminlbfgsProx; ... 
-        ((fminlbfgsData.fvals_fminlbfgs(:) - fminlbfgsData.fvals_fminlbfgsProx(:)) ...
-        ./ (fminlbfgsData.fvals_fminlbfgs(:)) * 100)']
+
+check1 = [fminlbfgsData.fvals_lbfgs; ...
+        fminlbfgsData.fvals_prox];
+
+check2 = [fminlbfgsData.fvals_lbfgs; ...
+        fminlbfgsData.fvals_prox; ... 
+        ((fminlbfgsData.fvals_lbfgs(:) - fminlbfgsData.fvals_prox(:)) ...
+        ./ (fminlbfgsData.fvals_lbfgs(:)) * 100)'];
+
 figure
-x_finalz = fminlbfgsData.Xs(:,i);
-% %%
+subplot(2,1,1)
+plot(fminlbfgsData.t_stamps,fminlbfgsData.fvals, 'k:', ...
+    'Marker','*', 'MarkerSize', 3, 'MarkerIndices', 1:10:length(fminlbfgsData.t_stamps))
+hold on
+plot(fminlbfgsData.t_stamps,fminlbfgsData.fvals_lbfgs, 'r--')
+plot(fminlbfgsData.t_stamps,fminlbfgsData.fvals_prox, 'b--')
+legend('fvals', 'fvals_{lbfgs}', 'fvals_{prox}')
+ylim([0.9*f(R_true) max(fminlbfgsData.fvals)])
+title('F Evaluations')
 
-plot(fminlbfgsData.f_slra_val)
-line([0 length(lbfgsData.t_stamps)], [f_slra f_slra], 'Color', 'r')
 
-sample_divisor1 = 1;
-sys_comparison(u0(1:ceil(length(u0)/sample_divisor1),:), ...
-    y0(1:ceil(length(y0)/sample_divisor1),:), ...
-    r2ss(reshape(x_finalz, dimensions), m_in, ell));
+subplot(2,1,2)
+plot(fminlbfgsData.t_stamps,mean(fminlbfgsData.M0))
+title('Mean Accuracy')
+
+fprintf("Time Elapsed on PANOC_FMINLBFGS : %.3f\n", t_stamp);
+R_panocfminlbfgs = reshape(x_steps(:,end), dimensions);
