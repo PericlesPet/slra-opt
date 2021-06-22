@@ -2,7 +2,7 @@
 % Generally, series of operations:
 % slraInit -> opt_algos/gd/gdMain
 %          -> opt_algos/augLag/alm/almTest 
-%          -> opt_algos/myFmincon 
+%          -> opt_algos/fminconTests 
 %          -> opt_algos/panoc
 %          -> opt_algos/fminlfbgs
 

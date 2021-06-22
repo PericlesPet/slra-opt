@@ -2,7 +2,7 @@
 % Generally, series of operations:
 % slraInit -> opt_algos/gd/gdMain
 %          -> opt_algos/augLag/alm/almTest 
-%          -> opt_algos/myFmincon 
+%          -> opt_algos/fminconTests 
 %          -> opt_algos/panoc
 %          -> opt_algos/fminlfbgs
 
@@ -338,7 +338,7 @@ end
     % matlab's fmincon for verification
 if runALM
     fprintf('\n\nInitiate fmincon Algorithms\n');
-    myFmincon
+    fminconTests
 else
 %     load([all_files(1).folder '\fminconData_gdTrue.mat'])
 %     load([all_files(1).folder '\fminconData_gdFrue.mat'])
