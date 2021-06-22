@@ -1,6 +1,6 @@
 % PANOC algorithm using the lbgfs and proximal gradient methods
 % include the Matlab folder with all its subfolders to your path
-close all
+% close all
 number_of_steps = 300;
 max_number_of_steps_backtracking=8;
 dimensions      = size(Rini);
@@ -186,6 +186,7 @@ title('F Evaluations')
 subplot(2,1,2)
 plot(panocFminlbfgsData.t_stamps,mean(panocFminlbfgsData.M0))
 title('Mean Accuracy')
+suptitle('PANOC_{FMINLBFGS} Figures')
 
 fprintf("Time Elapsed on PANOC_FMINLBFGS : %.3f\n", t_stamp);
 R_panocfminlbfgs = reshape(x_steps(:,end), dimensions);
@@ -205,62 +206,62 @@ R_panocfminlbfgs = reshape(x_steps(:,end), dimensions);
 % % figure(2);clf;
 % subplot(2,1,2)
 % plot(f_evals)    
-%%
-subplot_x = 2;
-subplot_y = 1;
-
-figure;
-for subplot_1 = 1
-    subplot(subplot_x ,subplot_y, subplot_1)
-    plot(f_evals, 'ko', 'MarkerSize', 2)
-    hold on
-    plot(f_lbfgs_evals, '-.')
-    plot(f_prox_evals, '--')
-    plot(f_opt*ones(size(f_lbfgs_evals)))
-    legend('f evals', 'f lbfgs evals', 'f prox evals', 'optimal f (ground truth)')
-end
-
-for subplot_2 = 2
-    subplot(subplot_x, subplot_y, subplot_2)
-    plot(f_evals, 'ko', 'MarkerSize', 2)
-    hold on
-    plot(f_lbfgs_evals, '-.')
-    plot(f_prox_evals, '--')
-%     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r')
-    plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r', condition_xIndices, fbeHigherCond, '--k')
-    plot(f_opt*ones(size(f_lbfgs_evals)))
-    legend('f evals', 'f lbfgs evals', 'f prox evals', 'fbe low', 'fbe high', 'fbe higher', 'optimal f (ground truth)')
-end
-
-%
-figure
-for subplot_3 = 1
-    subplot(subplot_x, subplot_y, subplot_3)
-    hold on
-    plot(gammas)
-    legend('gammas')
-end
-
-for subplot_4 = 2
-    subplot(subplot_x, subplot_y, subplot_4)
-    plot(f_evals, 'ko', 'MarkerSize', 2)
-    hold on
-%     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r')
-    plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r', condition_xIndices, fbeHigherCond, '--k')
-    legend('f evals', 'fbe low', 'fbe high', 'fbe higher')
-end
-
-
-
-%%
-figure;
-plot(f_evals, 'o', 'MarkerSize', 2, 'MarkerFaceColor','b')
-hold on
-plot(condition_array(1,:))
-plot(condition_array(2,:))
-legend('f evals', 'fbe 1', 'fbe 2')
-% f(Rh)
-
-
-% figure(2);clf;
+% % % %%
+% % % subplot_x = 2;
+% % % subplot_y = 1;
+% % % 
+% % % figure;
+% % % for subplot_1 = 1
+% % %     subplot(subplot_x ,subplot_y, subplot_1)
+% % %     plot(f_evals, 'ko', 'MarkerSize', 2)
+% % %     hold on
+% % %     plot(f_lbfgs_evals, '-.')
+% % %     plot(f_prox_evals, '--')
+% % %     plot(f_opt*ones(size(f_lbfgs_evals)))
+% % %     legend('f evals', 'f lbfgs evals', 'f prox evals', 'optimal f (ground truth)')
+% % % end
+% % % 
+% % % for subplot_2 = 2
+% % %     subplot(subplot_x, subplot_y, subplot_2)
+% % %     plot(f_evals, 'ko', 'MarkerSize', 2)
+% % %     hold on
+% % %     plot(f_lbfgs_evals, '-.')
+% % %     plot(f_prox_evals, '--')
+% % % %     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r')
+% % %     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r', condition_xIndices, fbeHigherCond, '--k')
+% % %     plot(f_opt*ones(size(f_lbfgs_evals)))
+% % %     legend('f evals', 'f lbfgs evals', 'f prox evals', 'fbe low', 'fbe high', 'fbe higher', 'optimal f (ground truth)')
+% % % end
+% % % 
+% % % %
+% % % figure
+% % % for subplot_3 = 1
+% % %     subplot(subplot_x, subplot_y, subplot_3)
+% % %     hold on
+% % %     plot(gammas)
+% % %     legend('gammas')
+% % % end
+% % % 
+% % % for subplot_4 = 2
+% % %     subplot(subplot_x, subplot_y, subplot_4)
+% % %     plot(f_evals, 'ko', 'MarkerSize', 2)
+% % %     hold on
+% % % %     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r')
+% % %     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r', condition_xIndices, fbeHigherCond, '--k')
+% % %     legend('f evals', 'fbe low', 'fbe high', 'fbe higher')
+% % % end
+% % % 
+% % % 
+% % % 
+% % % %%
+% % % figure;
+% % % plot(f_evals, 'o', 'MarkerSize', 2, 'MarkerFaceColor','b')
+% % % hold on
+% % % plot(condition_array(1,:))
+% % % plot(condition_array(2,:))
+% % % legend('f evals', 'fbe 1', 'fbe 2')
+% % % % f(Rh)
+% % % 
+% % % 
+% % % % figure(2);clf;
 % plot(x_steps(1,2:end)./x_steps(1,1:end-1));

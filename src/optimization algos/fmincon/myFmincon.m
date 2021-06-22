@@ -18,14 +18,17 @@
 %    and don't let Matlab calculate them
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-f   = checkdata.f;
-df  = checkdata.df;
-DxL = checkdata.DxL;
-L   = checkdata.L;
-DxLx = @(x) checkdata.DxL(x, lambda, 10000);
-Lx   = @(x) checkdata.L(x, lambda, 10000);
-ce  = checkdata.ce;
-dce = checkdata.dce;
+
+%%%% IMPORTANT: RUN ALMTEST FIRST (FOR DEPENDENCIES)
+
+f   = almData.f;
+df  = almData.df;
+DxL = almData.DxL;
+L   = almData.L;
+DxLx = @(x) almData.DxL(x, lambda, 10000);
+Lx   = @(x) almData.L(x, lambda, 10000);
+ce  = almData.ce;
+dce = almData.dce;
 consGradient = true;
 x0 = [ph_ini(:) ; Rini(:)];
 
@@ -33,50 +36,51 @@ outerLoops  = 1;
 rho         = 10;
 rho_Mult    = 5;
 
-maxIters    = 8;
-innerLoops  = 10;
-selectAlgo  = 2;
+maxIters    = 15;
+innerLoops  = 8;
 
+for selectAlgo  = 2:3
+
+clear fminconData
 
 switch selectAlgo
 	case 1 	% ALM function, no constraints (maybe R*R' = I ?)
+        fprintf('INITIATE FMINCON for ALM function\n');
 		fun     = @(x) objfungrad(x, Lx, DxLx);
 %         nonlcon = @(x) [];
         nonlcon = @(x) myConfungrad(x, ce, dce);
-        outerLoops = 10;
+        outerLoops = 5;
 	case 2  % SLRA function, s.t. R*R' = I
+        fprintf('INITIATE FMINCON for SLRA function\n');
 		fun     = @(x) LM_obj_reg(reshape(x,size(Rini)));
 		ce_rri2 = @(x) stiefConstraint(reshape(x,size(Rini)), 'dist');
 		dce_rri2 = @(x)FDGradient(ce_rri2,x,gstep);
 		nonlcon = @(x) myConfungrad(x, ce_rri2, dce_rri2);
         x0 = [Rini(:)];
-	case 3  % norm(p - ph)^2 s.t. constraints,  WITHOUT  Constraint Gradients 
+        outerLoops = 1;
+	case 4  % norm(p - ph)^2 s.t. constraints,  WITHOUT  Constraint Gradients 
 		fun     = @(x) objfungrad(x, f, df);
         dce_empty = @(x)[];
         nonlcon = @(x) myConfungrad(x, ce, dce_empty);
         consGradient = false;
-	case 4  % norm(p - ph)^2 s.t. constraints,   WITH  	 Constraint Gradients 
+	case 3  % norm(p - ph)^2 s.t. constraints,   WITH  	 Constraint Gradients 
+        fprintf('INITIATE FMINCON for |p - x|^2, s.t. constraints\n');
 		fun     = @(x) objfungrad(x, f, df);
         nonlcon = @(x) myConfungrad(x, ce, dce);
+        x0 = [ph_ini(:) ; Rini(:)];
+        outerLoops = 1;
 end
-
-
-% ce_rri
-% dce_rri
-
 
 % nonlcon = @(x) confungrad(x, ce_rri, dce_rri);
 % nonlcon = @(x) confungrad(x, ce, dce);
+dispLvl = 'off';
 options = optimoptions('fmincon',...
     'SpecifyObjectiveGradient',true, ...
     'SpecifyConstraintGradient',consGradient, ...
-    'Display','iter', ...
+    'Display',dispLvl, ...
     'MaxFunctionEvaluations', 100000, ...
     'MaxIterations', maxIters);
     
-
-%
-clear fminconData;
 A = [];
 b = [];
 Aeq = [];
@@ -85,22 +89,23 @@ lb = [];
 ub = [];
 x0_temp = x0;
 
-
 index = 1;
 rho = 10;
 for j = 1:outerLoops
 
 if selectAlgo == 1
-    DxLx    =   @(x) checkdata.DxL(x, lambda, rho);
-    Lx      =   @(x) checkdata.L(x, lambda, rho);
+    DxLx    =   @(x) almData.DxL(x, lambda, rho);
+    Lx      =   @(x) almData.L(x, lambda, rho);
     fun     =   @(x) objfungrad(x, Lx, DxLx);
     nonlcon =   @(x) myConfungrad(x, ce, dce);
 end
 
+fprintf('   OUTER ITER %d\n', j);
+
 for i = 1:innerLoops
 %     fprintf('FMINCON LOOP %d\n', j);
-    fprintf('        ITER %d\n', i);
-    fprintf('        RHO  %3d\n', rho);
+%     fprintf('   inner iter %d\n', i);
+%     fprintf('        RHO  %3d\n', rho);
     tic
     if i==1, options.MaxIterations=1; else options.MaxIterations = maxIters;end
     
@@ -135,26 +140,23 @@ end
 
 x0 = x0_temp;
 
-plot(fminconData.f_slra_val)
-min(fminconData.f_slra_val)
-max(mean((fminconData.M0)))
-beep on
-beep 
-
-
-%% CHECK SLRA ACCURACY
-for i = 1:size(info.RhK, 3)
-    [~, M_testslra(:,i)] = sysAccuracy(info.RhK(:,:,i));    
+if selectAlgo == 1
+    fminconData_aLM = fminconData;
+    fprintf('Complete: Fmincon ALM in t = %f sec.\n', ...
+        fminconData.t_stamps(end));
+elseif selectAlgo == 2
+    fminconData_slraVSslra = fminconData;
+    fprintf('Complete: Fmincon SLRA in t = %f sec.\n', ...
+        fminconData.t_stamps(end));
+elseif selectAlgo == 3
+    fminconData_gdTrue = fminconData;
+    fprintf('Complete: Fmincon |p-x|^2 in t = %f sec.\n', ...
+        fminconData.t_stamps(end));
 end
-subplot(2,1,1)
-plot(mean(M_testslra))
-subplot(2,1,2)
-plot(info.iterinfo(1,:), info.iterinfo(2,:), 'r--')
 
-max(mean(M_testslra))
-
-
-
+end
+% beep on
+% beep 
 
 
 

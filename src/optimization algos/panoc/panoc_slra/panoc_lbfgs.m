@@ -156,14 +156,8 @@ title('F Evaluations')
 subplot(2,1,2)
 plot(panocLbfgsData.t_stamps,mean(panocLbfgsData.M0))
 title('Mean Accuracy')
+suptitle('PANOC_{LBFGS} Figures')
 
 fprintf("Time Elapsed on PANOC_LBFGS : %.3f\n", t_stamp);
-fprintf("Fevals : [f_evals ; f_lbfgs_evals ; f_prox_evals; taus] \n");
-% f_all_evals = [f_evals; f_evals_lbfgs; f_evals_prox; taus];
-
-% f_evals
-% f_lbfgs_evals
-% bcktrckingSteps
-
 x_panoclbfgs_final = x_steps(:,end);
 R_panoclbfgs       = reshape(x_panoclbfgs_final, size(Rini));

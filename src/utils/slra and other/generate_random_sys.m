@@ -1,4 +1,4 @@
-function [n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m, p, ell, s)
+function [n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m, p, ell, s, multiplier)
 % INPUT ARGUMENTS
 % m     : Inputs
 % p     : Outputs
@@ -18,7 +18,7 @@ q = m + p;      % w Vector size (INPUTS + OUTPUTS)
 
 % %% TOTAL MATRIX ELEMENTS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%    n = l*p      STATES        %%%
+%%%%    n = ell*p    STATES        %%%
 %%%%    m            INPUTS        %%%
 %%%%    p            OUTPUTS       %%%
 %%%%    A -> n * n   ELEMENTS      %%%
@@ -30,7 +30,7 @@ q = m + p;      % w Vector size (INPUTS + OUTPUTS)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 total_elem = (n+m)*(p+n);
 % %% SAMPLES, NOISE
-T = 5*total_elem;     % Samples, based on system complexity
+T = multiplier*total_elem;     % Samples, based on system complexity
 % T = 10;     % Samples
 
 %% generate data

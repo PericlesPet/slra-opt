@@ -1,4 +1,5 @@
 %% Extract data into vectors
+plotALMdata = almData;
 fvals           = plotALMdata.fval;
 xs              = plotALMdata.x;
 lambdas         = plotALMdata.lambda;
@@ -39,7 +40,6 @@ for ii = 1:length(iters)
 end    
 legend('norm(RH(x))', 'norm(R*R^{T} - I)')
 
-
 subplot(3,2,5)
 plot(t_stamps,DPs)
 xlabel('t (sec)')
@@ -59,7 +59,7 @@ for ii = 1:length(iters)
 	x_curr = x_curr + iters(ii);
     line([t_stamps(x_curr) t_stamps(x_curr)], [0.8* min(Mslras) 1.1*max(Mslras)], 'LineStyle' , ':', 'Color', 'r')
 end    
-line([0 t_stamps(x_curr)], [info1.fmin info1.fmin], 'Color', 'r')
+line([0 t_stamps(x_curr)], [info_mex.fmin info_mex.fmin], 'Color', 'r')
 ylim([0.8* min(Mslras) 1.1*max(Mslras)])
 
 subplot(3,2,4)
@@ -72,7 +72,7 @@ for ii = 1:length(iters)
 	x_curr = x_curr + iters(ii);
     line([t_stamps(x_curr) t_stamps(x_curr)], [0.9* min(mean(Ms)) 1.1*max(mean(Ms))], 'LineStyle' , ':', 'Color', 'r')
 end
-[~, M1_opt] = accuracy_r(info1.Rh);
+[~, M1_opt] = sysAccuracy(info_mex.Rh);
 line([0 t_stamps(x_curr)], [mean(M1_opt) mean(M1_opt)], 'Color', 'r')
 ylim([80 100])
 

@@ -92,8 +92,8 @@ gma = 10;
 
     options = struct( ...
         'gma', 5 ,...
-        'niter', 10 , ... 
-        'miter', 100 ...
+        'niter', 1 , ... 
+        'miter', 1 ...
     );
 
     %     slradata.obj    = obj;
@@ -111,50 +111,41 @@ gma = 10;
     if continue_from_earlier == 1
         options = struct( ...
             'gma', 5 ,...
-            'rho', checkdata.rho(end), ...        
+            'rho', almData.rho(end), ...        
             'niter', 20 , ... 
             'miter', 100 ...
         );
-        x0 = checkdata.x(:,end);
-        lambda0 = checkdata.lambda(:,end);
-        checkdata_temp = checkdata;
+        x0 = almData.x(:,end);
+        lambda0 = almData.lambda(:,end);
+        checkdata_temp = almData;
     end
      
 
     
  end
 
-
-
 tic
-[x, fval, lambda, kkt, checkdata] = ...
+[x, fval, lambda, kkt, almData] = ...
     almSolve(problem, x0, lambda0, options, slradata);
 toc
 
-% if ~exist('info1')
-%     tic
-%     [ph1, info1] = slra(p, s, r, opt)
-%     toc
-%     % accuracy_r = @(R)compare(iddata(slradata.y0, slradata.u0), idss(r2ss(R, slradata.m_in, slradata.ell))); 
-% end
+doVisual = 0;
+if doVisual == 1
+    almVisualize
+end
 
-almVisualize
-
-
-%%
-% Get final x
-x_final(inf_indices,1)        = p(inf_indices);
-x_final(non_inf_indices,1)    = x(1:np);
-
-R_alm_vec = x(np_w+1:end);
-R_alm = reshape(R_alm_vec, R_n, R_m);
-ph_alm = x(1:np_w);
-
-f_temp = slra_mex_obj('func', obj, R_alm)
-f_temp = slra_mex_obj('func', obj, Rini)
-[~, M_alm] = accuracy_r(R_alm);
-[~, M_ini] = accuracy_r(Rini);
-[~, M_slraOpt] = accuracy_r(info1.Rh);
-mean([M_alm M_ini M_slraOpt])
-% sys_comparison(u0, y0, r2ss(Rini, m_in, ell))
-
+% % % Get final x
+% % % x_final(inf_indices,1)        = p(inf_indices);
+% % % x_final(non_inf_indices,1)    = x(1:np);
+% % % 
+% % % R_alm_vec = x(np_w+1:end);
+% % % R_alm = reshape(R_alm_vec, R_n, R_m);
+% % % ph_alm = x(1:np_w);
+% % % 
+% % % f_temp = slra_mex_obj('func', obj, R_alm);
+% % % f_temp = slra_mex_obj('func', obj, Rini);
+% % % [~, M_alm] = accuracy_r(R_alm);
+% % % [~, M_ini] = accuracy_r(Rini);
+% % % [~, M_slraOpt] = accuracy_r(info1.Rh);
+% % % mean([M_alm M_ini M_slraOpt]);
+% % % 

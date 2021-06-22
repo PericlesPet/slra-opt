@@ -9,21 +9,39 @@
     % ADD PATH
 addpath(genpath('..\..\..\Matlab\slra-slra-b1908bf'))
 addpath(genpath('..\..\..\Matlab\slra-opt'))
+
+
+    % DESIGN PARAMETERS
+parameters.m_in    = [3;2];         % Inputs
+parameters.p_out   = [3;2];         % Outputs
+parameters.ell     = [2;2];         % l time-horizon / dynamics                                                                                                  
+parameters.s_noise = [0.1;0.1];     % Noise Variation
+parameters.multiplier = [5;5];      % Multiplies base amount of samples to generate
+complexities = 1;
+% complexities = length(parameters.m_in);
+
+
+for cmplx_iter = 1:complexities
+
 clc
-clear all, randn('seed', 0), rand('seed', 0), warning off
+clearvars -except cmplx_iter complexities parameters statsTable
+randn('seed', 0), rand('seed', 0), warning off
 
 %%
 clc
-
     % DESIGN PARAMETERS
-m_in = 2;            % Inputs
-p_out = 2;           % Outputs
-ell = 2;             % l time-horizon / dynamics                                                                                                  
-s_noise = 0.10;      % Noise Variation
+m_in       = parameters.m_in(cmplx_iter);       % Inputs
+p_out      = parameters.p_out(cmplx_iter);      % Outputs
+ell        = parameters.ell(cmplx_iter);        % l time-horizon / dynamics                                                                                                  
+s_noise    = parameters.s_noise(cmplx_iter);    % Noise Variation
+multiplier = parameters.multiplier(cmplx_iter); % Multiplies base amount of samples to generate
 
     % GENERATE RANDOM SYSTEM
-[n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m_in, p_out, ell, s_noise);
-    % SLRA Solver Options
+[n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m_in, p_out, ell, s_noise, multiplier);
+
+statsTable.complexities(cmplx_iter) = T*m_in*p_out;
+fprintf('Running for Complexity: %d\n\n', T*m_in*p_out);
+    % SLRA Solver Options    
 opt_oe.exct = 1:m_in;      % fixed inputs = output error identification
 use_c = 1;
 if use_c
@@ -126,13 +144,6 @@ x2R         = @(X) (reshape(X(np+1:end), size(Rini)));
 
 
     % Set Various Other
-% if ~exist('info1')
-%     tic
-%     [ph1, info1] = slra(p, s, r, opt);
-%     toc
-%     accuracy_r = sysAccuracy;
-% end
-
 
 for almInit = 1
     % minimize f(x), subject to ce(x) = 0, ci(x) >= 0 
@@ -254,15 +265,6 @@ constraints.dce_rri2    = @(x)FDGradient(constraints.ce_rri2,x,gstep);
 
 [~, M_slra] = sysAccuracy(R_ident);
 slradata.M0 = M_slra;
-dimensions  = size(Rini);
-dimension   = dimensions(1) * dimensions(2);
-LM_obj_reg  = @(R) SLRA_FuncAndGrad_vals(obj, opt.g, dimensions, R, 'reg');
-% get starting value gamma
-beta_safety_value=0.05;
-df  = @(x) reshape(slra_mex_obj('grad', obj, reshape(x, dimensions)), dimension , 1);
-lipschitz_constant = estimate_lipschitz( df,x0 );
-gamma0 = (1-beta_safety_value)/lipschitz_constant;
-gamma  = gamma0;
 
     % Get ident Accuracies
 tic
@@ -288,18 +290,70 @@ if plotM_ident
 end
 fprintf('\nIdent Accuracies Obtained, t = %f\n', t_mIdent)
 fprintf('slra has been initiated, proceed to optimization algos\n')
-%% STEP RESPONSES
-% Gather All Systems Into a Struct
-clear systems;
-systems.sys0        = sys0;
-systems.sysh_ident  = sysh_ident;
-systems.sysh_kung   = sysh_kung;
-
-% Plot Step Responses
-systems_step_responses(systems)
 
 
 
+
+%%
+
+isCloseAll = 0;
+runALM = 0;
+runVisualize = 1;
+
+tic_everything = tic;
+    % GD
+fprintf('\n\nInitiate GD Algorithms\n');
+GDescMain
+
+% cmplx_iter = 2;
+statsTable.gd_simple(cmplx_iter) = get_time(gdData);
+statsTable.gd_manopt(cmplx_iter) = get_time(gdManoptData);
+statsTable.gd_proj(cmplx_iter)   = get_time(gdProjData);
+statsTable.gd_reg(cmplx_iter)    = get_time(gdRegData);
+% gd_t for 1st : statsTable.gd_simple(1).t
+
+    % panoc / fminlbfgs
+fprintf('\n\nInitiate PANOC / FMINLBFGS Algorithms\n');
+panoc_lbfgs
+statsTable.panoclbfgs(cmplx_iter) = get_time(panocLbfgsData);
+
+panoc_fminlbfgs
+statsTable.panocfminlbfgs(cmplx_iter) = get_time(panocFminlbfgsData);
+
+custom_fminlbfgs
+statsTable.fminlbfgs_simple(cmplx_iter) = get_time(fminlbfgsData_simple);
+statsTable.fminlbfgs_prox(cmplx_iter)   = get_time(fminlbfgsData_prox);
+    
+    % ALM 
+    % Dont run every time because its incredibly slow, just load the data
+if runALM
+    fprintf('\n\nInitiate ALM Algorithm\n');
+    almTest
+else
+    all_files = dir(fullfile('data\final Data\','*.mat'));
+    load([all_files(1).folder '\almData.mat'])
+    load([all_files(1).folder '\fminconData_aLM.mat'])
+end
+
+    % matlab's fmincon for verification
+if runALM
+    fprintf('\n\nInitiate fmincon Algorithms\n');
+    myFmincon
+else
+%     load([all_files(1).folder '\fminconData_gdTrue.mat'])
+%     load([all_files(1).folder '\fminconData_gdFrue.mat'])
+%     load([all_files(1).folder '\fminconData_gdTrue.mat'])
+%     load([all_files(1).folder '\fminconData_slraVSslra.mat'])
+end
+
+t_everything = toc(tic_everything);
+fprintf('Everything Finished in %f sec.\n', t_everything);
+
+if runVisualize
+    dataVisualize
+end
 %% DELETE OBJ
 slra_mex_obj('delete', obj);
 
+
+end

@@ -5,18 +5,23 @@
 % 3 :   fminlbfgs        Data 
 % 4 :   panoc            Data
 % 5 :   alm              Data
-
-close all
-clc
+if isCloseAll == 1
+    close all
+    clc
+else
+    isCloseAll = 1;
+end
 
     % Load ALL Data
 all_files = dir(fullfile('data\final Data\','*.mat'));
 for i = 1:numel(all_files)
-    if ~exist(all_files(i).name(1:end-4))
+    if ~exist(all_files(i).name(1:end-4)) ... 
+            || strcmp(all_files(i).name(1:end-4), 'fminconData_aLM') ...
+            || strcmp(all_files(i).name(1:end-4), 'almData')
         file_path = [all_files(i).folder '\' all_files(i).name];
         fprintf('Loading: %s \n',file_path);
         load(file_path)
-    else
+    else 
         fprintf('Already Loaded: %s \n',all_files(i).name(1:end));
     end
 end
@@ -34,15 +39,19 @@ for selectVisual = 1:5
                 if selectGDesc == 1
                     gdescData   = gdData;    
                     gdescTitle  = 'Simple Gradient Descent';
+                    fgName      = 'gd_simple';
                 elseif selectGDesc == 2
                     gdescData   = gdRegData;    
                     gdescTitle  = 'Regularized Gradient Descent';
+                    fgName      = 'gd_reg';
                 elseif selectGDesc == 3
                     gdescData   = gdManoptData;    
                     gdescTitle  = 'ManOpt-like Gradient Descent';
+                    fgName      = 'gd_manopt';
                 elseif selectGDesc == 4
                     gdescData   = gdProjData;    
                     gdescTitle  = 'Stiefel-Projected Gradient Descent';
+                    fgName      = 'gd_proj';
                 end
 
                 use_iter = 0;
@@ -99,8 +108,10 @@ for selectVisual = 1:5
                 end
                 xlim([0 gdXlim])
                 xlabel('t (seconds)')
-
-                suptitle(gdescTitle)
+                ylim([-100 100])
+                suptitle(gdescTitle)                
+                set(gcf, 'Position', get(0, 'Screensize'));
+                saveas(gcf,['temp\' fgName], 'png')
             end
 
 
@@ -115,15 +126,19 @@ for selectVisual = 1:5
             if selectFminconFunc == 1
                 fminconData = fminconData_aLM;
                 fminconTitle = 'Matlab Fmincon for: L(x,R) s.t. RR^{T} - I = 0, compared to C SLRA';
+                fgName      = 'fmincon_alm';
             elseif selectFminconFunc == 2
                 fminconData = fminconData_gdTrue;
                 fminconTitle = 'Matlab Fmincon for: f(x) = |p-x|^{2} s.t. both constraints, compared to C SLRA';
+                fgName      = 'fmincon_gdTrue';
             elseif selectFminconFunc == 3
-                fminconData = fminconData_gdfalse;
+                fminconData = fminconData_gdFalse;
                 fminconTitle = 'Matlab Fmincon for: f(x) = |p-x|^{2} s.t. both constraints, compared to C SLRA';
+                fgName      = 'fmincon_gdFalse';
             elseif selectFminconFunc == 4
                 fminconData = fminconData_slraVSslra;
                 fminconTitle = 'Matlab Fmincon for: M(R) s.t. RR^{T} - I = 0, compared to C SLRA';
+                fgName      = 'fmincon_varpro';
             end
 
 
@@ -180,7 +195,12 @@ for selectVisual = 1:5
                 legend('accuracy for fmincon', 'slra best accuracy')
             end
             xlabel('t (seconds)')
+            ylim([-100 100])
+
             suptitle(fminconTitle)
+            
+            set(gcf, 'Position', get(0, 'Screensize'));
+            saveas(gcf,['temp\' fgName], 'png')
         end
 
         % subplot(2,2,3)
@@ -236,9 +256,11 @@ for selectVisual = 1:5
                 if selectFminlbfgs == 1
                     fminlbfgsData = fminlbfgsData_simple;
                     fminlbfgsTitle = 'fminlbfgs for M(R), compared to C SLRA';
+                    fgName      = 'fminlbfgs_simple';
                 elseif selectFminlbfgs == 2
                     fminlbfgsData = fminlbfgsData_prox;
                     fminlbfgsTitle = 'fminlbfgs for M(R) with alternating proximal updates, compared to C SLRA';
+                    fgName      = 'fminlbfgs_prox';
                 end
 
                 use_iter = 0;
@@ -297,8 +319,13 @@ for selectVisual = 1:5
                 end
                 ylabel('accuracy (%)')
                 xlabel('t (seconds)')
+                ylim([-100 100])
 
                 suptitle(fminlbfgsTitle)
+                
+                set(gcf, 'Position', get(0, 'Screensize'));
+                saveas(gcf,['temp\' fgName], 'png')
+
             end
 
         case 4
@@ -372,11 +399,18 @@ for selectVisual = 1:5
                 end
                 ylabel('accuracy (%)')
                 xlabel('t (seconds)')
+                ylim([-100 100])
 
-                if isFMINLBFGS, suptitle('PANOC with FMINLBFGS, compared to C SLRA'), else ...
-                        suptitle('PANOC with simple LBFGS, compared to C SLRA'),end
+                if isFMINLBFGS 
+                    suptitle('PANOC with FMINLBFGS, compared to C SLRA')
+                    fgName      = 'panoc_fminlbfgs';
+                else
+                    suptitle('PANOC with simple LBFGS, compared to C SLRA')
+                    fgName      = 'panoc_lbfgs';
+                end
 
-
+                set(gcf, 'Position', get(0, 'Screensize'));
+                saveas(gcf,['temp\' fgName], 'png')
 
 
                 % subplot(2,2,3)
@@ -387,6 +421,9 @@ for selectVisual = 1:5
         %% FROM ALM
         plotALMdata = almData;
         almVisualize;
+        fgName      = 'alm';
+        set(gcf, 'Position', get(0, 'Screensize'));
+        saveas(gcf,['temp\' fgName], 'png')
 
     end
 end

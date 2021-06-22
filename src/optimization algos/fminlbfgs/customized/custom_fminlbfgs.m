@@ -1,6 +1,6 @@
 %% Objective Params
-close all
-clc
+% close all
+% clc
 mu = opt.g;
 R_lm0 = Rini;
 
@@ -22,7 +22,7 @@ problem_lm.x0 = x0;
 
 % %% FminLBFGS Params
 fminlbfgs_iterations    = 400;
-pcntImproveThresh       = 1.0;
+pcntImproveThresh       = 0.0;
 selectUpdate            = 1;
 noiseLevel              = 0.00000;
 displayComparisons      = 0;
@@ -32,7 +32,7 @@ f_fminlbfgs_vals        = zeros(1, fminlbfgs_iterations);
 f_fminlbfgs_prox_vals   = zeros(1, fminlbfgs_iterations);
 test_fs                 = zeros(1, fminlbfgs_iterations);
 
-
+for selectUpdate = 1:2
     % ITERATE
     % fminlbfgs - lbfgs - GradConstr = false 
 clear fminlbfgsData    
@@ -183,10 +183,18 @@ legend('fvals', 'fvals_{lbfgs}', 'fvals_{prox}')
 ylim([0.9*f(R_true) max(fminlbfgsData.fvals)])
 title('F Evaluations')
 
-
 subplot(2,1,2)
 plot(fminlbfgsData.t_stamps,mean(fminlbfgsData.M0))
 title('Mean Accuracy')
-
-fprintf("Time Elapsed on PANOC_FMINLBFGS : %.3f\n", t_stamp);
-R_panocfminlbfgs = reshape(x_steps(:,end), dimensions);
+if selectUpdate == 1
+    suptitle('FMINLBFGS (with alternating prox steps) Figures')
+    fprintf("Time Elapsed on FMINLBFGS_{prox} : %.3f\n", t_stamp);
+    fminlbfgsData_prox = fminlbfgsData;
+    R_fminlbfgsProx = reshape(x_steps(:,end), dimensions);
+else
+    suptitle('FMINLBFGS Figures')
+    fprintf("Time Elapsed on FMINLBFGS_{simple} : %.3f\n", t_stamp);
+    fminlbfgsData_simple = fminlbfgsData;
+    R_fminlbfgsSimple = reshape(x_steps(:,end), dimensions);    
+end
+end
