@@ -30,7 +30,7 @@ q = m + p;      % w Vector size (INPUTS + OUTPUTS)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 total_elem = (n+m)*(p+n);
 % %% SAMPLES, NOISE
-T = multiplier*total_elem;     % Samples, based on system complexity
+T = ceil(multiplier*total_elem);     % Samples, based on system complexity
 % T = 10;     % Samples
 
 %% generate data

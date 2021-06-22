@@ -64,6 +64,10 @@ switch selectAlgo
         nonlcon = @(x) myConfungrad(x, ce, dce_empty);
         consGradient = false;
 	case 3  % norm(p - ph)^2 s.t. constraints,   WITH  	 Constraint Gradients 
+        f   = @(X)1/2*norm(alm_weights(~isinf(alm_weights)).*(X(1:np_w)-wtfdata.p(1:np_w)))^2;
+        df  = @(X)[alm_weights(~isinf(alm_weights)).*(X(1:np_w)-wtfdata.p(1:np_w));zeros(R_n*R_m,1)];
+        ce  = @(X)([ce_rh0(X),ce_rri(X)]);
+        dce = @(X)([dce_rh0(X),dce_rri(X)]);
         fprintf('INITIATE FMINCON for |p - x|^2, s.t. constraints\n');
 		fun     = @(x) objfungrad(x, f, df);
         nonlcon = @(x) myConfungrad(x, ce, dce);

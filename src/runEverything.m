@@ -16,7 +16,7 @@ parameters.m_in    = [3;2];         % Inputs
 parameters.p_out   = [3;2];         % Outputs
 parameters.ell     = [2;2];         % l time-horizon / dynamics                                                                                                  
 parameters.s_noise = [0.1;0.1];     % Noise Variation
-parameters.multiplier = [5;5];      % Multiplies base amount of samples to generate
+parameters.multiplier = [1;5];      % Multiplies base amount of samples to generate
 complexities = 1;
 % complexities = length(parameters.m_in);
 
@@ -36,49 +36,55 @@ ell        = parameters.ell(cmplx_iter);        % l time-horizon / dynamics
 s_noise    = parameters.s_noise(cmplx_iter);    % Noise Variation
 multiplier = parameters.multiplier(cmplx_iter); % Multiplies base amount of samples to generate
 
-    % GENERATE RANDOM SYSTEM
-[n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m_in, p_out, ell, s_noise, multiplier);
+M_ident = 0;
+while M_ident <= 75
+        % GENERATE RANDOM SYSTEM
+    [n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m_in, p_out, ell, s_noise, multiplier);
 
-statsTable.complexities(cmplx_iter) = T*m_in*p_out;
-fprintf('Running for Complexity: %d\n\n', T*m_in*p_out);
-    % SLRA Solver Options    
-opt_oe.exct = 1:m_in;      % fixed inputs = output error identification
-use_c = 1;
-if use_c
-    opt_oe.solver = 'c';
-else
-    opt_oe.solver = 'm';
-    opt_oe.method = 'reg';
+    statsTable.complexities(cmplx_iter) = T*m_in*p_out;
+    fprintf('Running for Complexity: %d\n\n', T*m_in*p_out);
+        % SLRA Solver Options    
+    opt_oe.exct = 1:m_in;      % fixed inputs = output error identification
+    use_c = 1;
+    if use_c
+        opt_oe.solver = 'c';
+    else
+        opt_oe.solver = 'm';
+        opt_oe.method = 'reg';
+    end
+    % opt_MyOptimization
+    opt_mo.exct = 1:m_in;      % fixed inputs = output error identification
+    opt_mo.solver = 'm';
+    opt_mo.method = 'reg';
+
+        % IDENT
+    % profile on
+    % profiler_data = profile('info');
+    %   GET IDENT SOLUTION
+    % tic, sysh_ident = ident(w, m, ell, opt_oe); t_ident = toc;
+    tic, [sysh_ident, info_ident, wh_ident, xini_ident] = ident_custom(w, m_in, ell, opt_oe); t_ident = toc;
+    %   GET KUNG REALIZATION SOLUTION
+    tic, sysh_kung = w2h2ss(w, m_in, n); t_kung = toc;
+
+
+        % GET ACCURACIES
+    % Confirm sys0 is the ground truth
+    fprintf('Ground Truth (Check): \n');
+    sys_comparison(u0, y0, r2ss(ss2r(sys0), m_in, ell), 0);
+    % How Close is initial system to noisy [u,y] ??
+    fprintf('Ground Truth + Noise: \n');
+    M_noise = sys_comparison(u, y, sys0, 0);
+    % How close is SLRA IDENTIFIED system to initial system
+    fprintf('Ident system: \n');
+    M_ident = sys_comparison(u0, y0, sysh_ident, 0, t_ident);
+    % How close is KUNG REALIZATION system to initial system
+    fprintf('Kung Realization: \n');
+    M_kung = sys_comparison(u0, y0, sysh_kung, 0, t_kung);
+    if M_ident <= 75
+        clc
+        fprintf('REPEAT\n');
+    end
 end
-% opt_MyOptimization
-opt_mo.exct = 1:m_in;      % fixed inputs = output error identification
-opt_mo.solver = 'm';
-opt_mo.method = 'reg';
-
-    % IDENT
-% profile on
-% profiler_data = profile('info');
-%   GET IDENT SOLUTION
-% tic, sysh_ident = ident(w, m, ell, opt_oe); t_ident = toc;
-tic, [sysh_ident, info_ident, wh_ident, xini_ident] = ident_custom(w, m_in, ell, opt_oe); t_ident = toc;
-%   GET KUNG REALIZATION SOLUTION
-tic, sysh_kung = w2h2ss(w, m_in, n); t_kung = toc;
-
-
-    % GET ACCURACIES
-% Confirm sys0 is the ground truth
-fprintf('Ground Truth (Check): \n');
-sys_comparison(u0, y0, r2ss(ss2r(sys0), m_in, ell), 0);
-% How Close is initial system to noisy [u,y] ??
-fprintf('Ground Truth + Noise: \n');
-M_noise = sys_comparison(u, y, sys0, 0);
-% How close is SLRA IDENTIFIED system to initial system
-fprintf('Ident system: \n');
-M_ident = sys_comparison(u0, y0, sysh_ident, 0, t_ident);
-% How close is KUNG REALIZATION system to initial system
-fprintf('Kung Realization: \n');
-M_kung = sys_comparison(u0, y0, sysh_kung, 0, t_kung);
-
 
 fprintf('First Part of SLRA data generation COMPLETE\n')
 
@@ -265,6 +271,15 @@ constraints.dce_rri2    = @(x)FDGradient(constraints.ce_rri2,x,gstep);
 
 [~, M_slra] = sysAccuracy(R_ident);
 slradata.M0 = M_slra;
+dimensions  = size(Rini);
+dimension   = dimensions(1) * dimensions(2);
+LM_obj_reg  = @(R) SLRA_FuncAndGrad_vals(obj, opt.g, dimensions, R, 'reg');
+% get starting value gamma
+beta_safety_value=0.05;
+df  = @(x) reshape(slra_mex_obj('grad', obj, reshape(x, dimensions)), dimension , 1);
+lipschitz_constant = estimate_lipschitz( df, Rini(:) );
+gamma0 = (1-beta_safety_value)/lipschitz_constant;
+gamma  = gamma0;
 
     % Get ident Accuracies
 tic
@@ -293,11 +308,9 @@ fprintf('slra has been initiated, proceed to optimization algos\n')
 
 
 
-
-%%
-
-isCloseAll = 0;
-runALM = 0;
+isCloseAll   = 0;
+runALM       = 0;
+runFMINCON   = 1;
 runVisualize = 1;
 
 tic_everything = tic;
@@ -336,14 +349,9 @@ else
 end
 
     % matlab's fmincon for verification
-if runALM
+if runFMINCON
     fprintf('\n\nInitiate fmincon Algorithms\n');
     fminconTests
-else
-%     load([all_files(1).folder '\fminconData_gdTrue.mat'])
-%     load([all_files(1).folder '\fminconData_gdFrue.mat'])
-%     load([all_files(1).folder '\fminconData_gdTrue.mat'])
-%     load([all_files(1).folder '\fminconData_slraVSslra.mat'])
 end
 
 t_everything = toc(tic_everything);
