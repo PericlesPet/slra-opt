@@ -82,7 +82,7 @@ for i = 1:fminlbfgs_iterations
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    elseif selectUpdate == 1 % Update via PROX
+    elseif selectUpdate == 2 % Update via PROX
         %         fprintf('Update fminlbfgs with proximal step\n');
         [x_prox_grad_descent,new_gamma] = prox_grad_descent_step( x_lbfgs(:),gamma,beta_safety_value,proxg,f,df );
         gamma=new_gamma;
@@ -187,8 +187,15 @@ subplot(2,1,2)
 if ~isAccSemilog 
     plot(fminlbfgsData.t_stamps,max(mean(fminlbfgsData.M0), 0))
 else
-    semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0))
+    semilogy(fminlbfgsData.t_stamps, ...
+        max(mean(fminlbfgsData.M0(:,:)), ...
+            1./abs(mean(fminlbfgsData.M0(:,:)))))
+        
+    ylim([0 100])
+%     semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0))
 end
+
+
 
 title('Mean Accuracy')
 if selectUpdate == 1

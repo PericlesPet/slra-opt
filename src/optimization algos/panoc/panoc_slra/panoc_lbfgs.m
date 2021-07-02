@@ -157,7 +157,12 @@ subplot(2,1,2)
 if ~isAccSemilog
     plot(panocLbfgsData.t_stamps,max(mean(panocLbfgsData.M0),0))
 else
-    semilogy(panocLbfgsData.t_stamps, mean(panocLbfgsData.M0))
+    semilogy(panocLbfgsData.t_stamps, ...
+    max(mean(panocLbfgsData.M0(:,:)), ...
+        1./abs(mean(panocLbfgsData.M0(:,:)))))
+
+    ylim([0 100])
+%     semilogy(panocLbfgsData.t_stamps, mean(panocLbfgsData.M0))
 end
 title('Mean Accuracy')
 suptitle('PANOC_{LBFGS} Figures')

@@ -311,7 +311,7 @@ fprintf('slra has been initiated, proceed to optimization algos\n')
 isCloseAll   = 0;
 runALM       = 0;
 runFMINCON   = 1;
-runVisualize = 0;
+visualizeOption = 2;  % 0 - No visualize, 1 - dataVisualize, 2 - dataVisualizeComplexities
 isAccSemilog = 1;  % =1 For Plot accuracy is semilogy graph
 
 tic_everything = tic;
@@ -361,10 +361,11 @@ end
 
 t_everything = toc(tic_everything);
 fprintf('Everything Finished in %f sec.\n', t_everything);
-if 
-    
-if runVisualize
+%%
+if visualizeOption == 1
     dataVisualize
+elseif visualizeOption == 2
+    dataVisualizeComplexities
 end
 %% DELETE OBJ
 slra_mex_obj('delete', obj);

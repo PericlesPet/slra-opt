@@ -41,21 +41,20 @@ for selectVisual = 1:4
                     gdescTitle  = 'Simple Gradient Descent';
                     fgName      = 'gd_simple';
                     isAggrMfig    = 0;
-                    isAggrFVALfig = 0;
-                    
-                elseif selectGDesc == 2
+                    isAggrFVALfig = 0;                    
+                elseif selectGDesc == 4
                     gdescData   = gdRegData;    
                     gdescTitle  = 'Regularized Gradient Descent';
                     fgName      = 'gd_reg';
                     isAggrMfig    = 1;
                     isAggrFVALfig = 1;
-                elseif selectGDesc == 3
+                elseif selectGDesc == 2
                     gdescData   = gdManoptData;    
                     gdescTitle  = 'ManOpt-like Gradient Descent';
                     fgName      = 'gd_manopt';
                     isAggrMfig    = 0;
                     isAggrFVALfig = 0;
-                elseif selectGDesc == 4
+                elseif selectGDesc == 3
                     gdescData   = gdProjData;    
                     gdescTitle  = 'Stiefel-Projected Gradient Descent';
                     fgName      = 'gd_proj';
@@ -102,7 +101,11 @@ for selectVisual = 1:4
 
                 subplot(3,1,3)
                 if isAccSemilog
-                    semilogy(gdescData.t_stamps, mean(gdescData.M), 'b')
+                    semilogy(gdescData.t_stamps, ...
+                            max(mean(gdescData.M(:,:)), ...
+                            1./abs(mean(gdescData.M(:,:)))), 'b')
+                    ylim([0 100])
+                    %semilogy(gdescData.t_stamps, mean(gdescData.M), 'b')
                 else
                     plot(gdescData.t_stamps, max(gdescData.M, 0), 'b')
                 end
@@ -131,7 +134,11 @@ for selectVisual = 1:4
                     aggrTstmps = [aggrTstmps gdescData.t_stamps(end)];
                     figure(aggrMfig)
                     if isAccSemilog
-                        semilogy(gdescData.t_stamps, mean(gdescData.M))
+                        semilogy(gdescData.t_stamps, ...
+                            max(mean(gdescData.M(:,:)), ...
+                            1./abs(mean(gdescData.M(:,:)))))
+                        ylim([0 100])
+                        %semilogy(gdescData.t_stamps, mean(gdescData.M))
                     else
                         plot(gdescData.t_stamps, max(mean(gdescData.M), 0))
                     end
@@ -157,19 +164,19 @@ for selectVisual = 1:4
                 isAggrMfig    = 0;
                 isAggrFVALfig = 0;
 
-            elseif selectFminconFunc == 2
+            elseif selectFminconFunc == 3
                 fminconData = fminconData_gdTrue;
                 fminconTitle = 'Matlab Fmincon for: f(x) = |p-x|^{2} s.t. both constraints, compared to C SLRA';
                 fgName      = 'fmincon_gdTrue';
                 isAggrMfig    = 0;
                 isAggrFVALfig = 0;
-            elseif selectFminconFunc == 3
+            elseif selectFminconFunc == 4
                 fminconData = fminconData_gdFalse;
                 fminconTitle = 'Matlab Fmincon for: f(x) = |p-x|^{2} s.t. both constraints, compared to C SLRA';
                 fgName      = 'fmincon_gdFalse';
                 isAggrMfig    = 0;
                 isAggrFVALfig = 0;
-            elseif selectFminconFunc == 4
+            elseif selectFminconFunc == 2
                 fminconData = fminconData_slraVSslra;
                 fminconTitle = 'Matlab Fmincon for: M(R) s.t. RR^{T} - I = 0, compared to C SLRA';
                 fgName      = 'fmincon_varpro';
@@ -218,8 +225,13 @@ for selectVisual = 1:4
 
             subplot(2,2,4)
             if isAccSemilog
-                semilogy(fminconData.t_stamps, mean(fminconData.M0), 'b')
+                semilogy(fminconData.t_stamps, ...
+                     max(mean(fminconData.M0(:,:)), ...
+                    1./abs(mean(fminconData.M0(:,:)))), 'b')
+                ylim([0 100])
+                %semilogy(fminconData.t_stamps, mean(fminconData.M0), 'b')
             else
+                
                 plot(fminconData.t_stamps, max(fminconData.M0, 0), 'b')
             end
             % ylim([-200 100])
@@ -249,8 +261,12 @@ for selectVisual = 1:4
                 aggrTstmps = [aggrTstmps gdescData.t_stamps(end)];
                 figure(aggrMfig)
                 if isAccSemilog
-                    semilogy(fminconData.t_stamps, mean(fminconData.M0))
-                else
+                    semilogy(fminconData.t_stamps, ...
+                    max(mean(fminconData.M0(:,:)), ...
+                        1./abs(mean(fminconData.M0(:,:)))))
+                    ylim([0 100])
+                    %semilogy(fminconData.t_stamps, mean(fminconData.M0))
+                else                    
                     plot(fminconData.t_stamps, max(mean(fminconData.M0), 0))
                 end
             end
@@ -320,7 +336,11 @@ for selectVisual = 1:4
                 if ~isAccSemilog
                     plot(fminlbfgsData.t_stamps, max(fminlbfgsData.M0, 0), 'b')
                 else
-                    semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0), 'b')
+                    semilogy(fminlbfgsData.t_stamps, ...
+                    max(mean(fminlbfgsData.M0(:,:)), ...
+                        1./abs(mean(fminlbfgsData.M0(:,:)))), 'b')
+                    ylim([0 100])
+                    %semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0), 'b')
                 end
                 
                 % ylim([-200 100])
@@ -351,7 +371,11 @@ for selectVisual = 1:4
                 if ~isAccSemilog
                     plot(fminlbfgsData.t_stamps, max(fminlbfgsData.M0, 0))
                 else
-                    semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0))
+                    semilogy(fminlbfgsData.t_stamps, ...
+                    max(mean(fminlbfgsData.M0(:,:)), ...
+                        1./abs(mean(fminlbfgsData.M0(:,:)))))
+                    ylim([0 100])
+                    %semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0))
                 end
 
                 figure(aggrFVALfig)
@@ -417,7 +441,11 @@ for selectVisual = 1:4
                 if ~isAccSemilog
                     plot(panocData.t_stamps, max(panocData.M0, 0), 'b')
                 else
-                    semilogy(panocData.t_stamps, mean(panocData.M0), 'b')
+                    semilogy(panocData.t_stamps, ...
+                    max(mean(panocData.M0(:,:)), ...
+                        1./abs(mean(panocData.M0(:,:)))), 'b')
+                    ylim([0 100])
+                    % semilogy(panocData.t_stamps, mean(panocData.M0), 'b')
                 end
                 
                 % ylim([-200 100])
@@ -454,7 +482,11 @@ for selectVisual = 1:4
                 if ~isAccSemilog
                     plot(panocData.t_stamps, max(panocData.M0, 0))
                 else
-                    semilogy(panocData.t_stamps, mean(panocData.M0))
+                    semilogy(panocData.t_stamps, ...
+                    max(mean(panocData.M0(:,:)), ...
+                        1./abs(mean(panocData.M0(:,:)))))
+                    ylim([0 100])
+                    % semilogy(panocData.t_stamps, mean(panocData.M0))
                 end
 
                 figure(aggrFVALfig)
