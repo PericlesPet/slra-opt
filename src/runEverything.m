@@ -311,18 +311,21 @@ fprintf('slra has been initiated, proceed to optimization algos\n')
 isCloseAll   = 0;
 runALM       = 0;
 runFMINCON   = 1;
-runVisualize = 1;
+runVisualize = 0;
 
 tic_everything = tic;
+
     % GD
+
 fprintf('\n\nInitiate GD Algorithms\n');
+selectGDs = [3 4];
 GDescMain
 
 % cmplx_iter = 2;
-statsTable.gd_simple(cmplx_iter) = get_time(gdData);
-statsTable.gd_manopt(cmplx_iter) = get_time(gdManoptData);
-statsTable.gd_proj(cmplx_iter)   = get_time(gdProjData);
-statsTable.gd_reg(cmplx_iter)    = get_time(gdRegData);
+if exist('gdData'),      statsTable.gd_simple(cmplx_iter) = get_time(gdData);       end
+if exist('gdManoptData'),statsTable.gd_manopt(cmplx_iter) = get_time(gdManoptData); end
+if exist('gdProjData'),  statsTable.gd_proj(cmplx_iter)   = get_time(gdProjData);   end
+if exist('gdRegData'),   statsTable.gd_reg(cmplx_iter)    = get_time(gdRegData);    end
 % gd_t for 1st : statsTable.gd_simple(1).t
 
     % panoc / fminlbfgs
@@ -351,6 +354,7 @@ end
     % matlab's fmincon for verification
 if runFMINCON
     fprintf('\n\nInitiate fmincon Algorithms\n');
+    selectFmincons = [2];
     fminconTests
 end
 

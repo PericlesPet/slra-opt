@@ -16,8 +16,8 @@ clear all, randn('seed', 0), rand('seed', 0), warning off
 clc
 
     % DESIGN PARAMETERS
-m_in = 3;            % Inputs
-p_out = 3;           % Outputs
+m_in = 2;            % Inputs
+p_out = 2;           % Outputs
 ell = 2;             % l time-horizon / dynamics                                                                                                  
 s_noise = 0.1;      % Noise Variation
 multiplier = 5;      % Multiplies base amount of samples to generate
@@ -46,9 +46,15 @@ while M_ident <= 75
         % IDENT
     % profile on
     % profiler_data = profile('info');
-    %   GET IDENT SOLUTION
+        % GET IDENT SOLUTION
     % tic, sysh_ident = ident(w, m, ell, opt_oe); t_ident = toc;
     tic, [sysh_ident, info_ident, wh_ident, xini_ident] = ident_custom(w, m_in, ell, opt_oe); t_ident = toc;
+
+    % GET M IDENT
+    getMident = 0;
+    if getMident
+        tic, [syshM_ident, infoM_ident, whM_ident, xiniM_ident] = ident_custom(w, m_in, ell, opt_mo); t_Mident = toc;
+    end
     %   GET KUNG REALIZATION SOLUTION
     tic, sysh_kung = w2h2ss(w, m_in, n); t_kung = toc;
 
@@ -73,7 +79,7 @@ while M_ident <= 75
     end
 end
 
-%%
+%
 fprintf('First Part of SLRA data generation COMPLETE\n')
 
     % MIDDLE
@@ -294,6 +300,7 @@ end
 fprintf('\nIdent Accuracies Obtained, t = %f\n', t_mIdent)
 fprintf('slra has been initiated, proceed to optimization algos\n')
 
+isCloseAll   = 1;
 
 %% STEP RESPONSES
 % Gather All Systems Into a Struct

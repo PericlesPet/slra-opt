@@ -9,8 +9,9 @@ gdInput.obj         = obj;
 gdInput.sysAccuracy = sysAccuracy;
 gdInput.Ropt        = R_slramex;
 
+if ~exist('selectGDs'), selectGDs = 1:4; end
 
-for gdAlgo  = 1:4 % 1 -> simple/reg GD
+for gdAlgo  = selectGDs % 1 -> simple/reg GD
 
 tic
 switch gdAlgo

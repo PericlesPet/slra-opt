@@ -39,6 +39,8 @@ rho_Mult    = 5;
 maxIters    = 15;
 innerLoops  = 8;
 
+if ~exist('selectFmincons'), selectFmincons = [2:3]; end
+
 for selectAlgo  = 2:3
 
 clear fminconData
