@@ -5,6 +5,9 @@
 % 3 :   fminlbfgs        Data 
 % 4 :   panoc            Data
 % 5 :   alm              Data
+
+if ~exist('isAccSemilog'), isAccSemilog = 0; end
+
 if isCloseAll == 1
     close all
     clc
@@ -22,6 +25,7 @@ title('Aggregate Accuracies (%)')
 aggrFVALfig = figure;
 hold on
 title('Aggregate SLRA M(R) Vals')
+
 
 
 for selectVisual = 1:4
@@ -97,8 +101,11 @@ for selectVisual = 1:4
             %     title('Fvals')
 
                 subplot(3,1,3)
-                semilogy(gdescData.t_stamps, mean(gdescData.M), 'b')
-                % plot(gdescData.t_stamps, max(gdescData.M, 0), 'b')
+                if isAccSemilog
+                    semilogy(gdescData.t_stamps, mean(gdescData.M), 'b')
+                else
+                    plot(gdescData.t_stamps, max(gdescData.M, 0), 'b')
+                end
                 % ylim([-200 100])
                 title('Accuracy (%)')
                 if size(gdescData.M, 1) == 2
@@ -108,7 +115,7 @@ for selectVisual = 1:4
                         [M_slra(2) M_slra(2)], 'Color', 'r')
                     legend('accuracy for y1', 'accuracy for y2', 'slra best accuracy for y1','slra best accuracy for y2')
                 else
-                    line([0 gdescData.t_stamps(end)], ...
+                    line([0.001 gdescData.t_stamps(end)], ...
                         [mean(M_slra) mean(M_slra)], 'Color', 'r')
                     legend('accuracy for fmincon', 'slra best accuracy')
                 end
@@ -123,8 +130,11 @@ for selectVisual = 1:4
                 if isAggrMfig
                     aggrTstmps = [aggrTstmps gdescData.t_stamps(end)];
                     figure(aggrMfig)
-                    semilogy(gdescData.t_stamps, mean(gdescData.M), 'b')
-                    % plot(gdescData.t_stamps, max(mean(gdescData.M), 0))
+                    if isAccSemilog
+                        semilogy(gdescData.t_stamps, mean(gdescData.M))
+                    else
+                        plot(gdescData.t_stamps, max(mean(gdescData.M), 0))
+                    end
                 end
                 if isAggrFVALfig
                     figure(aggrFVALfig)
@@ -207,8 +217,11 @@ for selectVisual = 1:4
             xlabel('t (seconds)')
 
             subplot(2,2,4)
-            semilogy(fminconData.t_stamps, mean(fminconData.M0), 'b')
-            % plot(fminconData.t_stamps, max(fminconData.M0, 0), 'b')
+            if isAccSemilog
+                semilogy(fminconData.t_stamps, mean(fminconData.M0), 'b')
+            else
+                plot(fminconData.t_stamps, max(fminconData.M0, 0), 'b')
+            end
             % ylim([-200 100])
             title('Accuracy (%)')
             if size(fminconData.M0, 1) == 2
@@ -218,7 +231,7 @@ for selectVisual = 1:4
                     [M_slra(2) M_slra(2)], 'Color', 'r')
                 legend('accuracy for y1', 'accuracy for y2', 'slra best accuracy for y1','slra best accuracy for y2')
             else
-                line([0 fminconData.t_stamps(end)], ...
+                line([0.001 fminconData.t_stamps(end)], ...
                     [mean(M_slra) mean(M_slra)], 'Color', 'r')
                 legend('accuracy for fmincon', 'slra best accuracy')
             end
@@ -235,58 +248,17 @@ for selectVisual = 1:4
             if isAggrMfig
                 aggrTstmps = [aggrTstmps gdescData.t_stamps(end)];
                 figure(aggrMfig)
-                semilogy(fminconData.t_stamps, mean(fminconData.M0), 'b')
-                %  plot(fminconData.t_stamps, max(mean(fminconData.M0), 0))
+                if isAccSemilog
+                    semilogy(fminconData.t_stamps, mean(fminconData.M0))
+                else
+                    plot(fminconData.t_stamps, max(mean(fminconData.M0), 0))
+                end
             end
             if isAggrFVALfig
                 figure(aggrFVALfig)
                 plot(fminconData.t_stamps, fminconData.f_slra_val)
             end
         end
-
-        % subplot(2,2,3)
-        % plot(fminconData.f_slra_val)
-
-        % VISUALIZE DIFFERENCE BETWEEN FVALS, SLRA, AND CONSTRAINTS (PROBABLY USELESS)
-    %     
-    %     for visualizeDiff = 1
-    %         figure
-    %         %%%%% SLRA %%%%%
-    %         subplot(2,2,1)
-    %         plot(fminconData.t_stamps, fminconData.f_slra_val)
-    %         title('SLRA M(R)')
-    %         hold on
-    %         if ~use_iter, plot(info_mex.iterinfo(1,:), info_mex.iterinfo(2,:), 'r--'), else ...
-    %             plot(1:length(info_mex.iterinfo(1,:)), info_mex.iterinfo(2,:), 'r--'), end
-    %         line([0 fminconData.t_stamps(end)], [f_slra f_slra], 'Color', 'r')
-    %         legend('fmincon', 'slra mex', 'optimum point')
-    % 
-    %         %%%%% FVALS %%%%%
-    %         subplot(2,2,3)
-    %         plot(fminconData.t_stamps, 2*fminconData.fvals)
-    %         title('Fvals')
-    % 
-    %         %%%%% SLRA - FVALS %%%%%
-    %         subplot(2,2,2)
-    %         plot(fminconData.t_stamps, fminconData.f_slra_val-2*fminconData.fvals)
-    %         title('SLRA - Fvals')
-    % 
-    %         %%%%% CONSTRAINTS%%%%%
-    %         subplot(2,2,4)
-    %         for ii = 1:size(fminconData.CE, 1)    
-    %             semilogy(fminconData.t_stamps, fminconData.CE(ii,:))
-    %             hold on
-    %         end
-    %         % hold on
-    %         % semilogy(fminconData.CE(2,:))
-    %         title('Constraints')
-    %         if size(fminconData.CE, 1) == 1
-    %             legend('RR^T - I_N = 0 Const.')
-    %         else
-    %             legend('R*Hank(p_{hat}) = 0 Const.', 'RR^T - I_N = 0 Const.')
-    %         end
-    %     end
-
 
 
         case 3
@@ -345,17 +317,22 @@ for selectVisual = 1:4
                 xlabel('t (seconds)')
 
                 subplot(2,2,4)
-                plot(fminlbfgsData.t_stamps, max(fminlbfgsData.M0, 0), 'b')
+                if ~isAccSemilog
+                    plot(fminlbfgsData.t_stamps, max(fminlbfgsData.M0, 0), 'b')
+                else
+                    semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0), 'b')
+                end
+                
                 % ylim([-200 100])
                 title('Accuracy (%)')
                 if size(fminlbfgsData.M0, 1) == 2
-                    line([0 fminlbfgsData.t_stamps(end)], ...
+                    line([0.001 fminlbfgsData.t_stamps(end)], ...
                         [M_slra(1) M_slra(1)], 'Color', 'r')
-                    line([0 fminlbfgsData.t_stamps(end)], ...
+                    line([0.001 fminlbfgsData.t_stamps(end)], ...
                         [M_slra(2) M_slra(2)], 'Color', 'r')
                     legend('accuracy for y1', 'accuracy for y2', 'slra best accuracy for y1','slra best accuracy for y2')
                 else
-                    line([0 fminlbfgsData.t_stamps(end)], ...
+                    line([0.001 fminlbfgsData.t_stamps(end)], ...
                         [mean(M_slra) mean(M_slra)], 'Color', 'r')
                     legend('accuracy for fmincon', 'slra best accuracy')
                 end
@@ -371,7 +348,11 @@ for selectVisual = 1:4
                 % AGGREGATE FIGURES 
                 aggrTstmps = [aggrTstmps fminlbfgsData.t_stamps(end)];
                 figure(aggrMfig)
-                plot(fminlbfgsData.t_stamps, max(mean(fminlbfgsData.M0), 0))
+                if ~isAccSemilog
+                    plot(fminlbfgsData.t_stamps, max(fminlbfgsData.M0, 0))
+                else
+                    semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0))
+                end
 
                 figure(aggrFVALfig)
                 plot(fminlbfgsData.t_stamps, fminlbfgsData.f_slra_val)
@@ -433,17 +414,22 @@ for selectVisual = 1:4
                 xlabel('t (seconds)')
 
                 subplot(2,2,4)
-                plot(panocData.t_stamps, max(panocData.M0, 0), 'b')
+                if ~isAccSemilog
+                    plot(panocData.t_stamps, max(panocData.M0, 0), 'b')
+                else
+                    semilogy(panocData.t_stamps, mean(panocData.M0), 'b')
+                end
+                
                 % ylim([-200 100])
                 title('Accuracy (%)')
                 if size(panocData.M0, 1) == 2
-                    line([0 panocData.t_stamps(end)], ...
+                    line([0.001 panocData.t_stamps(end)], ...
                         [M_slra(1) M_slra(1)], 'Color', 'r')
-                    line([0 panocData.t_stamps(end)], ...
+                    line([0.001 panocData.t_stamps(end)], ...
                         [M_slra(2) M_slra(2)], 'Color', 'r')
                     legend('accuracy for y1', 'accuracy for y2', 'slra best accuracy for y1','slra best accuracy for y2')
                 else
-                    line([0 panocData.t_stamps(end)], ...
+                    line([0.001 panocData.t_stamps(end)], ...
                         [mean(M_slra) mean(M_slra)], 'Color', 'r')
                     legend('accuracy for panoc_{lbfgs}', 'slra best accuracy')
                 end
@@ -464,8 +450,12 @@ for selectVisual = 1:4
 
                 % AGGREGATE FIGURES 
                 aggrTstmps = [aggrTstmps panocData.t_stamps(end)];
-                figure(aggrMfig)
-                plot(panocData.t_stamps, max(mean(panocData.M0), 0))
+                figure(aggrMfig)                
+                if ~isAccSemilog
+                    plot(panocData.t_stamps, max(panocData.M0, 0))
+                else
+                    semilogy(panocData.t_stamps, mean(panocData.M0))
+                end
 
                 figure(aggrFVALfig)
                 plot(panocData.t_stamps, panocData.f_slra_val)
@@ -510,7 +500,7 @@ saveas(gcf,['temp\' fgName], 'png')
 
     % AGGREAGATE ACCURACIES 
 figure(aggrMfig)
-line([0 mean(aggrTstmps)], ...
+line([0.001 mean(aggrTstmps)], ...
     [mean(M_slra) mean(M_slra)], 'Color', 'r')
 
 legend('gd_{reg}', 'gd_{proj}', ...
@@ -519,7 +509,7 @@ legend('gd_{reg}', 'gd_{proj}', ...
     'panoc_{lbfgs}', 'panoc_{fminlbfgs}', ...
     'slra best accuracy')
 
-xlim([0 mean(aggrTstmps)])
+xlim([0.001 mean(aggrTstmps)])
 ylim([88 97])
 xlabel('t (seconds)')
 
@@ -543,8 +533,8 @@ for i = 1:numel(all_files)
 end
 
 figure
-isSemilog = 1;
-if ~isSemilog
+isCppVmatlabSemilog = 1;
+if ~isCppVmatlabSemilog
     plot(info_ident.iterinfo(1,:), info_ident.iterinfo(2,:), 'r')
     hold on
     plot(infoM_ident.TSTMPS, infoM_ident.F, 'b')
