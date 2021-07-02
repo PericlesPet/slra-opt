@@ -184,7 +184,12 @@ ylim([0.9*f(R_true) max(fminlbfgsData.fvals)])
 title('F Evaluations')
 
 subplot(2,1,2)
-plot(fminlbfgsData.t_stamps,mean(fminlbfgsData.M0))
+if ~isAccSemilog 
+    plot(fminlbfgsData.t_stamps,max(mean(fminlbfgsData.M0), 0))
+else
+    semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0))
+end
+
 title('Mean Accuracy')
 if selectUpdate == 1
     suptitle('FMINLBFGS (with alternating prox steps) Figures')

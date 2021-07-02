@@ -154,7 +154,11 @@ title('F Evaluations')
 
 
 subplot(2,1,2)
-plot(panocLbfgsData.t_stamps,mean(panocLbfgsData.M0))
+if ~isAccSemilog
+    plot(panocLbfgsData.t_stamps,max(mean(panocLbfgsData.M0),0))
+else
+    semilogy(panocLbfgsData.t_stamps, mean(panocLbfgsData.M0))
+end
 title('Mean Accuracy')
 suptitle('PANOC_{LBFGS} Figures')
 

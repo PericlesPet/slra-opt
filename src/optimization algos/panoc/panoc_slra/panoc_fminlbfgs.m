@@ -184,7 +184,12 @@ title('F Evaluations')
 
 
 subplot(2,1,2)
-plot(panocFminlbfgsData.t_stamps,mean(panocFminlbfgsData.M0))
+
+if ~isAccSemilog
+    plot(panocFminlbfgsData.t_stamps,max(mean(panocFminlbfgsData.M0), 0))
+else
+    semilogy(panocFminlbfgsData.t_stamps, mean(panocFminlbfgsData.M0))
+end
 title('Mean Accuracy')
 suptitle('PANOC_{FMINLBFGS} Figures')
 

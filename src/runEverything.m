@@ -312,6 +312,7 @@ isCloseAll   = 0;
 runALM       = 0;
 runFMINCON   = 1;
 runVisualize = 0;
+isAccSemilog = 1;  % =1 For Plot accuracy is semilogy graph
 
 tic_everything = tic;
 
@@ -360,7 +361,8 @@ end
 
 t_everything = toc(tic_everything);
 fprintf('Everything Finished in %f sec.\n', t_everything);
-
+if 
+    
 if runVisualize
     dataVisualize
 end

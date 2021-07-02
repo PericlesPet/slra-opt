@@ -41,7 +41,7 @@ innerLoops  = 8;
 
 if ~exist('selectFmincons'), selectFmincons = [2:3]; end
 
-for selectAlgo  = 2:3
+for selectAlgo  = selectFmincons
 
 clear fminconData
 
@@ -150,6 +150,11 @@ if selectAlgo == 1
     fminconData_aLM = fminconData;
     fprintf('Complete: Fmincon ALM in t = %f sec.\n', ...
         fminconData.t_stamps(end));
+    fprintf('   SLRA Fmin = %f,\n   Mean Acc = %f %% \n', ...        
+        fminconData.f_slra_val(end), mean(fminconData.M0(:,end)));
+    fprintf('   Max Mean Acc = %f %% \n', ...        
+        max(mean(fminconData.M0(:,:))));
+    
 elseif selectAlgo == 2
     fminconData_slraVSslra = fminconData;
     fprintf('Complete: Fmincon SLRA in t = %f sec.\n', ...
