@@ -1,4 +1,4 @@
-function [n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m, p, ell, s, multiplier)
+function [n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m, p, ell, s, multiplier, T)
 % INPUT ARGUMENTS
 % m     : Inputs
 % p     : Outputs
@@ -30,9 +30,12 @@ q = m + p;      % w Vector size (INPUTS + OUTPUTS)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 total_elem = (n+m)*(p+n);
 % %% SAMPLES, NOISE
-T = ceil(multiplier*total_elem);     % Samples, based on system complexity
-% T = 10;     % Samples
-
+if nargin == 6
+    T = T;
+else
+    T = ceil(multiplier*total_elem);     % Samples, based on system complexity
+    % T = 10;     % Samples
+end
 %% generate data
 % Generate a discrete LTI system with:
 % n STATES --- p OUTPUTS --- m INPUTS.

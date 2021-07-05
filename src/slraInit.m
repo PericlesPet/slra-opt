@@ -44,8 +44,6 @@ while M_ident <= 75
     opt_mo.method = 'reg';
 
         % IDENT
-    % profile on
-    % profiler_data = profile('info');
         % GET IDENT SOLUTION
     % tic, sysh_ident = ident(w, m, ell, opt_oe); t_ident = toc;
     tic, [sysh_ident, info_ident, wh_ident, xini_ident] = ident_custom(w, m_in, ell, opt_oe); t_ident = toc;

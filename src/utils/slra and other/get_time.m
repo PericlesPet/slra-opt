@@ -10,10 +10,10 @@ end
 tstamps = data.t_stamps;
 
 ma_points = 6;
-pcnt_target = 0.01;
+pcnt_target = 0.2;
 
 
-pcntgs = ((fvals(1:end-1) - fvals(2:end))./fvals(1:end-1))'*100;
+pcntgs = abs(((fvals(1:end-1) - fvals(2:end))./fvals(1:end-1))'*100);
 clear mavg
 
 for i = 1:length(pcntgs)

@@ -9,6 +9,7 @@ function [logdata, dataOptId, f_log, minf_log] = GDescProj(gdInput, opt, R_slram
     Ropt    = gdInput.Ropt;
     extCond = gdInput.extCond;
     sysAcc  = gdInput.sysAccuracy;
+    dspLvl  = gdInput.dspLvl;
     % last_x_elements = 10000;
     % last_x_elements = maxIter;
     % maxIter = ceil(maxIter / last_x_elements) * last_x_elements;
@@ -106,7 +107,9 @@ function [logdata, dataOptId, f_log, minf_log] = GDescProj(gdInput, opt, R_slram
             
             %% Condition + Print
             % logdata
-            fprintf('ITERATION: %d, minF = %f, id = %d, t_stamp = %f \n', i, min_f, id, logdata.t_stamps(id));
+            if strcmp(dspLvl, 'iter')
+                fprintf('ITERATION: %d, minF = %f, id = %d, t_stamp = %f \n', i, min_f, id, logdata.t_stamps(id));
+            end
             minf_log(id) = min_f;
             if (id >= 2 && extCond)
                 %         abs((f_log(i-1)/f_log(i - 101)-1)*100)

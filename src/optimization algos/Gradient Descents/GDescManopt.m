@@ -106,7 +106,9 @@ function [logdata, dataOptId, f_log, minf_log] = GDescManopt(gdInput, opt, R_slr
             
             %% Condition + Print
             % logdata
-            fprintf('ITERATION: %d, minF = %f, id = %d, t_stamp = %f \n', i, min_f, id, logdata.t_stamps(id));
+            if strcmp(dspLvl, 'iter')
+                fprintf('ITERATION: %d, minF = %f, id = %d, t_stamp = %f \n', i, min_f, id, logdata.t_stamps(id));
+            end
             minf_log(id) = min_f;
             if (id >= 2 && extCond)
                 %         abs((f_log(i-1)/f_log(i - 101)-1)*100)

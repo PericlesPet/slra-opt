@@ -1,6 +1,11 @@
 %% Objective Params
 % close all
 % clc
+if isCloseAll == 1
+    close all
+    clc
+end
+
 mu = opt.g;
 R_lm0 = Rini;
 
@@ -21,7 +26,12 @@ problem_lm.objective = LM_obj_reg;
 problem_lm.x0 = x0;
 
 % %% FminLBFGS Params
-fminlbfgs_iterations    = 400;
+maxComplexity               = 15;
+fminlbfgs_iterationsBase    = 400;
+fminlbfgs_iterations        = ceil(fminlbfgs_iterationsBase * ...
+    min((statsTable.complexities(cmplx_iter) / 500)^1.5,maxComplexity) / 100)*100;
+
+printFreq               = 100;
 pcntImproveThresh       = 0.0;
 selectUpdate            = 1;
 noiseLevel              = 0.00000;
@@ -139,7 +149,7 @@ for i = 1:fminlbfgs_iterations
         idss(r2ss(R_fminlbfgs, slradata.m_in, slradata.ell))); 
     fminlbfgsData.Xs(:, index)               = x_lbfgs(:);
     fminlbfgsData.fvals(index)               = fval_lbfgs; 
-    if selectUpdate ~= 1
+    if selectUpdate ~= 2
         fminlbfgsData.fvals_prox(index) = 0;
     end
     %     fminconData.M0(index)               = mean(M0);
@@ -154,7 +164,7 @@ for i = 1:fminlbfgs_iterations
 
     
     
-    if mod(i, 20) == 0
+    if mod(i, printFreq) == 0
         fprintf('f(%d) = %f  -  t = %f  -  Accuracy = %f\n', ...
             i, panocLbfgsData.fvals(i),t_stamp, mean(M0)); end
 
@@ -172,41 +182,48 @@ check2 = [fminlbfgsData.fvals_lbfgs; ...
         ((fminlbfgsData.fvals_lbfgs(:) - fminlbfgsData.fvals_prox(:)) ...
         ./ (fminlbfgsData.fvals_lbfgs(:)) * 100)'];
 
-figure
-subplot(2,1,1)
-plot(fminlbfgsData.t_stamps,fminlbfgsData.fvals, 'k:', ...
-    'Marker','*', 'MarkerSize', 3, 'MarkerIndices', 1:10:length(fminlbfgsData.t_stamps))
-hold on
-plot(fminlbfgsData.t_stamps,fminlbfgsData.fvals_lbfgs, 'r--')
-plot(fminlbfgsData.t_stamps,fminlbfgsData.fvals_prox, 'b--')
-legend('fvals', 'fvals_{lbfgs}', 'fvals_{prox}')
-ylim([0.9*f(R_true) max(fminlbfgsData.fvals)])
-title('F Evaluations')
+if plotFMINLBFGS 
+    figure
+    subplot(2,1,1)
+    plot(fminlbfgsData.t_stamps,fminlbfgsData.fvals, 'k:', ...
+        'Marker','*', 'MarkerSize', 3, 'MarkerIndices', 1:10:length(fminlbfgsData.t_stamps))
+    hold on
+    plot(fminlbfgsData.t_stamps,fminlbfgsData.fvals_lbfgs, 'r--')
+    plot(fminlbfgsData.t_stamps,fminlbfgsData.fvals_prox, 'b--')
+    legend('fvals', 'fvals_{lbfgs}', 'fvals_{prox}')
+    ylim([0.9*f(R_true) max(fminlbfgsData.fvals)])
+    title('F Evaluations')
 
-subplot(2,1,2)
-if ~isAccSemilog 
-    plot(fminlbfgsData.t_stamps,max(mean(fminlbfgsData.M0), 0))
-else
-    semilogy(fminlbfgsData.t_stamps, ...
-        max(mean(fminlbfgsData.M0(:,:)), ...
-            1./abs(mean(fminlbfgsData.M0(:,:)))))
-        
-    ylim([0 100])
-%     semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0))
+    subplot(2,1,2)
+    if ~isAccSemilog 
+        plot(fminlbfgsData.t_stamps,max(mean(fminlbfgsData.M0), 0))
+    else
+        semilogy(fminlbfgsData.t_stamps, ...
+            max(mean(fminlbfgsData.M0(:,:)), ...
+                1./abs(mean(fminlbfgsData.M0(:,:)))))
+
+        ylim([0 100])
+    %     semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0))
+    end
+
+    title('Mean Accuracy')
+    
 end
 
-
-
-title('Mean Accuracy')
-if selectUpdate == 1
-    suptitle('FMINLBFGS (with alternating prox steps) Figures')
+if selectUpdate == 2
+    if plotFMINLBFGS
+        suptitle('FMINLBFGS (with alternating prox steps) Figures')
+    end
     fprintf("Time Elapsed on FMINLBFGS_{prox} : %.3f\n", t_stamp);
     fminlbfgsData_prox = fminlbfgsData;
     R_fminlbfgsProx = reshape(x_steps(:,end), dimensions);
 else
-    suptitle('FMINLBFGS Figures')
+    if plotFMINLBFGS
+        suptitle('FMINLBFGS Figures')
+    end
     fprintf("Time Elapsed on FMINLBFGS_{simple} : %.3f\n", t_stamp);
     fminlbfgsData_simple = fminlbfgsData;
     R_fminlbfgsSimple = reshape(x_steps(:,end), dimensions);    
 end
+
 end

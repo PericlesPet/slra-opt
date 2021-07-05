@@ -1,7 +1,15 @@
 % PANOC algorithm using the lbgfs and proximal gradient methods
 % include the Matlab folder with all its subfolders to your path
-close all
-number_of_steps = 600;
+if isCloseAll == 1
+    close all
+    clc
+end
+maxComplexity       = 15;
+number_of_stepsBase = 600;
+number_of_steps     = ceil(number_of_stepsBase * ...
+    min((statsTable.complexities(cmplx_iter) / 500)^1.5,maxComplexity) / 100)*100;
+
+printFreq       = 100;
 dimensions      = size(Rini);
 dimension       = dimensions(1) * dimensions(2);
 x_steps         = zeros(dimension,  number_of_steps);
@@ -134,38 +142,40 @@ for interation_index=1:number_of_steps
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     
-    if mod(interation_index, 20) == 0
+    if mod(interation_index, printFreq) == 0
         fprintf('f(%d) = %f  -  t = %f  -  Accuracy = %f\n', ...
             interation_index, panocLbfgsData.fvals(interation_index),t_stamp, mean(M0)); end
 
 
 end
 
-figure
-subplot(2,1,1)
-plot(panocLbfgsData.t_stamps,panocLbfgsData.fvals, 'k:', ...
-    'Marker','*', 'MarkerSize', 3, 'MarkerIndices', 1:10:length(panocLbfgsData.t_stamps))
-hold on
-plot(panocLbfgsData.t_stamps,panocLbfgsData.fvals_lbfgs, 'r--')
-plot(panocLbfgsData.t_stamps,panocLbfgsData.fvals_prox, 'b--')
-legend('fvals', 'fvals_{lbfgs}', 'fvals_{prox}')
-ylim([0.9*f(R_true) max(panocLbfgsData.fvals)])
-title('F Evaluations')
+if plotPANOC 
+    figure
+    subplot(2,1,1)
+    plot(panocLbfgsData.t_stamps,panocLbfgsData.fvals, 'k:', ...
+        'Marker','*', 'MarkerSize', 3, 'MarkerIndices', 1:10:length(panocLbfgsData.t_stamps))
+    hold on
+    plot(panocLbfgsData.t_stamps,panocLbfgsData.fvals_lbfgs, 'r--')
+    plot(panocLbfgsData.t_stamps,panocLbfgsData.fvals_prox, 'b--')
+    legend('fvals', 'fvals_{lbfgs}', 'fvals_{prox}')
+    ylim([0.9*f(R_true) max(panocLbfgsData.fvals)])
+    title('F Evaluations')
 
 
-subplot(2,1,2)
-if ~isAccSemilog
-    plot(panocLbfgsData.t_stamps,max(mean(panocLbfgsData.M0),0))
-else
-    semilogy(panocLbfgsData.t_stamps, ...
-    max(mean(panocLbfgsData.M0(:,:)), ...
-        1./abs(mean(panocLbfgsData.M0(:,:)))))
+    subplot(2,1,2)
+    if ~isAccSemilog
+        plot(panocLbfgsData.t_stamps,max(mean(panocLbfgsData.M0),0))
+    else
+        semilogy(panocLbfgsData.t_stamps, ...
+        max(mean(panocLbfgsData.M0(:,:)), ...
+            1./abs(mean(panocLbfgsData.M0(:,:)))))
 
-    ylim([0 100])
-%     semilogy(panocLbfgsData.t_stamps, mean(panocLbfgsData.M0))
+        ylim([0 100])
+    %     semilogy(panocLbfgsData.t_stamps, mean(panocLbfgsData.M0))
+    end
+    title('Mean Accuracy')
+    suptitle('PANOC_{LBFGS} Figures')
 end
-title('Mean Accuracy')
-suptitle('PANOC_{LBFGS} Figures')
 
 fprintf("Time Elapsed on PANOC_LBFGS : %.3f\n", t_stamp);
 x_panoclbfgs_final = x_steps(:,end);

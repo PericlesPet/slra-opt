@@ -17,10 +17,14 @@ end
 
 % AGGREGATE FIGURES
 aggrTstmps = [];
+aggrMsMax  = [];
+aggrMsMin  = [];
+
     % AGGREGATE ACCURACIES
 aggrMfig = figure;
 hold on
 title('Aggregate Accuracies (%)')
+WinOnTop(aggrMfig);
     % AGGREGATE FVALS
 aggrFVALfig = figure;
 hold on
@@ -102,8 +106,8 @@ for selectVisual = 1:4
                 subplot(3,1,3)
                 if isAccSemilog
                     semilogy(gdescData.t_stamps, ...
-                            max(mean(gdescData.M(:,:)), ...
-                            1./abs(mean(gdescData.M(:,:)))), 'b')
+                            max(mean(gdescData.M(:,:),1), ...
+                            1./(abs(mean(gdescData.M(:,:),1))+1)), 'b')
                     ylim([0 100])
                     %semilogy(gdescData.t_stamps, mean(gdescData.M), 'b')
                 else
@@ -134,10 +138,14 @@ for selectVisual = 1:4
                     aggrTstmps = [aggrTstmps gdescData.t_stamps(end)];
                     figure(aggrMfig)
                     if isAccSemilog
+                        logMarray = max(mean(gdescData.M(:,:),1), ...
+                            1./(abs(mean(gdescData.M(:,:),1))+1));
+                        aggrMsMin = [aggrMsMin min(logMarray)];
+                        aggrMsMax = [aggrMsMax max(logMarray)];                        
                         semilogy(gdescData.t_stamps, ...
-                            max(mean(gdescData.M(:,:)), ...
-                            1./abs(mean(gdescData.M(:,:)))))
-                        ylim([0 100])
+                            logMarray)
+                        ylim([min(aggrMsMin) 100])
+
                         %semilogy(gdescData.t_stamps, mean(gdescData.M))
                     else
                         plot(gdescData.t_stamps, max(mean(gdescData.M), 0))
@@ -226,8 +234,8 @@ for selectVisual = 1:4
             subplot(2,2,4)
             if isAccSemilog
                 semilogy(fminconData.t_stamps, ...
-                     max(mean(fminconData.M0(:,:)), ...
-                    1./abs(mean(fminconData.M0(:,:)))), 'b')
+                     max(mean(fminconData.M0(:,:),1), ...
+                    1./(abs(mean(fminconData.M0(:,:),1))+1)), 'b')
                 ylim([0 100])
                 %semilogy(fminconData.t_stamps, mean(fminconData.M0), 'b')
             else
@@ -261,10 +269,13 @@ for selectVisual = 1:4
                 aggrTstmps = [aggrTstmps gdescData.t_stamps(end)];
                 figure(aggrMfig)
                 if isAccSemilog
+                    logMarray = max(mean(fminconData.M0(:,:),1), ...
+                            1./(abs(mean(fminconData.M0(:,:),1))+1));
+                    aggrMsMin = [aggrMsMin min(logMarray)];
+                    aggrMsMax = [aggrMsMax max(logMarray)];                        
                     semilogy(fminconData.t_stamps, ...
-                    max(mean(fminconData.M0(:,:)), ...
-                        1./abs(mean(fminconData.M0(:,:)))))
-                    ylim([0 100])
+                        logMarray)
+                    ylim([min(aggrMsMin) 100])
                     %semilogy(fminconData.t_stamps, mean(fminconData.M0))
                 else                    
                     plot(fminconData.t_stamps, max(mean(fminconData.M0), 0))
@@ -337,8 +348,8 @@ for selectVisual = 1:4
                     plot(fminlbfgsData.t_stamps, max(fminlbfgsData.M0, 0), 'b')
                 else
                     semilogy(fminlbfgsData.t_stamps, ...
-                    max(mean(fminlbfgsData.M0(:,:)), ...
-                        1./abs(mean(fminlbfgsData.M0(:,:)))), 'b')
+                    max(mean(fminlbfgsData.M0(:,:),1), ...
+                        1./(abs(mean(fminlbfgsData.M0(:,:),1))+1)), 'b')
                     ylim([0 100])
                     %semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0), 'b')
                 end
@@ -371,10 +382,14 @@ for selectVisual = 1:4
                 if ~isAccSemilog
                     plot(fminlbfgsData.t_stamps, max(fminlbfgsData.M0, 0))
                 else
+                    logMarray = max(mean(fminlbfgsData.M0(:,:),1), ...
+                        1./(abs(mean(fminlbfgsData.M0(:,:),1))+1));
+                    aggrMsMin = [aggrMsMin min(logMarray)];
+                    aggrMsMax = [aggrMsMax max(logMarray)]; 
+                    
                     semilogy(fminlbfgsData.t_stamps, ...
-                    max(mean(fminlbfgsData.M0(:,:)), ...
-                        1./abs(mean(fminlbfgsData.M0(:,:)))))
-                    ylim([0 100])
+                        logMarray)
+                    ylim([min(aggrMsMin) 100])
                     %semilogy(fminlbfgsData.t_stamps, mean(fminlbfgsData.M0))
                 end
 
@@ -442,8 +457,8 @@ for selectVisual = 1:4
                     plot(panocData.t_stamps, max(panocData.M0, 0), 'b')
                 else
                     semilogy(panocData.t_stamps, ...
-                    max(mean(panocData.M0(:,:)), ...
-                        1./abs(mean(panocData.M0(:,:)))), 'b')
+                    max(mean(panocData.M0(:,:),1), ...
+                        1./(abs(mean(panocData.M0(:,:),1))+1)), 'b')
                     ylim([0 100])
                     % semilogy(panocData.t_stamps, mean(panocData.M0), 'b')
                 end
@@ -482,10 +497,13 @@ for selectVisual = 1:4
                 if ~isAccSemilog
                     plot(panocData.t_stamps, max(panocData.M0, 0))
                 else
+                    logMarray = max(mean(panocData.M0(:,:),1), ...
+                        1./(abs(mean(panocData.M0(:,:),1))+1));
+                    aggrMsMin = [aggrMsMin min(logMarray)];
+                    aggrMsMax = [aggrMsMax max(logMarray)];                     
                     semilogy(panocData.t_stamps, ...
-                    max(mean(panocData.M0(:,:)), ...
-                        1./abs(mean(panocData.M0(:,:)))))
-                    ylim([0 100])
+                        logMarray)
+                    ylim([min(aggrMsMin) 100])
                     % semilogy(panocData.t_stamps, mean(panocData.M0))
                 end
 
@@ -542,60 +560,10 @@ legend('gd_{reg}', 'gd_{proj}', ...
     'slra best accuracy')
 
 xlim([0.001 mean(aggrTstmps)])
-ylim([88 97])
+ylim([min(aggrMsMin) 100])
 xlabel('t (seconds)')
+set(gca,'yscale','log')
 
 fgName = 'AggrMs';
 set(gcf, 'Position', get(0, 'Screensize'));
-saveas(gcf,['temp\' fgName], 'png')
-
-
-
-% SLRA C++ VS MATLAB 
-
-all_files = dir(fullfile('data\','*ident.mat'));
-for i = 1:numel(all_files)
-    if ~exist(all_files(i).name(1:end-4)) ... 
-        file_path = [all_files(i).folder '\' all_files(i).name];
-        fprintf('Loading: %s \n',file_path);
-        load(file_path)
-    else 
-        fprintf('Already Loaded: %s \n',all_files(i).name(1:end));
-    end
-end
-
-figure
-isCppVmatlabSemilog = 1;
-if ~isCppVmatlabSemilog
-    plot(info_ident.iterinfo(1,:), info_ident.iterinfo(2,:), 'r')
-    hold on
-    plot(infoM_ident.TSTMPS, infoM_ident.F, 'b')
-    line([0.003 infoM_ident.TSTMPS(end)], [f_slra f_slra], 'Color', 'r','LineStyle','--')
-    legend('SLRA C++', 'SLRA MATLAB', 'SLRA Optimum')
-    fgName = 'cppVmatlab';
-else
-    semilogx(infoM_ident.TSTMPS, infoM_ident.F, 'b')
-    hold on 
-    plot(info_ident.iterinfo(1,:), info_ident.iterinfo(2,:), 'r')
-    line([0.003 infoM_ident.TSTMPS(end)], [f_slra f_slra], 'Color', 'r','LineStyle','--')
-    legend('SLRA MATLAB', 'SLRA C++', 'SLRA Optimum')
-    fgName = 'cppVmatlab_semilog';
-end
-
-xlim([0 infoM_ident.TSTMPS(end)])
-xlabel('t (seconds)')
-title({'SLRA Convergence Comparison', 'C++ vs MATLAB Implementations'})
-
-set(gcf, 'Position', get(0, 'Screensize'));
-saveas(gcf,['temp\' fgName], 'png')
-
-
-
-
-
-
-
-
-
-
-        
+saveas(gcf,['temp\' fgName], 'png')        

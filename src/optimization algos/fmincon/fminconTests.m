@@ -36,8 +36,19 @@ outerLoops  = 1;
 rho         = 10;
 rho_Mult    = 5;
 
-maxIters    = 15;
-innerLoops  = 8;
+maxItersBase = 15;
+
+maxComplexity = 5;
+
+maxIters     = ceil(maxItersBase * ...
+    min((statsTable.complexities(cmplx_iter) / 500),maxComplexity) / 5)*5;
+
+innerLoopsBase  = 8;
+innerLoops = ceil(innerLoopsBase * ...
+    min((statsTable.complexities(cmplx_iter) / 500),maxComplexity) / 4)*4;
+
+
+
 
 if ~exist('selectFmincons'), selectFmincons = [2:3]; end
 

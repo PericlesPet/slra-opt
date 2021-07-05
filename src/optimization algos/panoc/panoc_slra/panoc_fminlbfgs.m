@@ -1,7 +1,15 @@
 % PANOC algorithm using the lbgfs and proximal gradient methods
 % include the Matlab folder with all its subfolders to your path
-% close all
-number_of_steps = 300;
+if isCloseAll == 1
+    close all
+    clc
+end
+maxComplexity       = 15;
+number_of_stepsBase = 300;
+number_of_steps     = ceil(number_of_stepsBase * ...
+    min((statsTable.complexities(cmplx_iter) / 500)^1.5,maxComplexity) / 100)*100;
+
+printFreq       = 100;
 max_number_of_steps_backtracking=8;
 dimensions      = size(Rini);
 dimension       = dimensions(1) * dimensions(2);
@@ -165,39 +173,40 @@ for interation_index=1:number_of_steps
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     
-    if mod(interation_index, 20) == 0
+    if mod(interation_index, printFreq) == 0
         fprintf('f(%d) = %f  -  t = %f  -  Accuracy = %f\n', ...
             interation_index, panocFminlbfgsData.fvals(interation_index),t_stamp, mean(M0)); end
 
 end
 
-figure
-subplot(2,1,1)
-plot(panocFminlbfgsData.t_stamps,panocFminlbfgsData.fvals, 'k:', ...
-    'Marker','*', 'MarkerSize', 3, 'MarkerIndices', 1:10:length(panocFminlbfgsData.t_stamps))
-hold on
-plot(panocFminlbfgsData.t_stamps,panocFminlbfgsData.fvals_lbfgs, 'r--')
-plot(panocFminlbfgsData.t_stamps,panocFminlbfgsData.fvals_prox, 'b--')
-legend('fvals', 'fvals_{lbfgs}', 'fvals_{prox}')
-ylim([0.9*f(R_true) max(panocFminlbfgsData.fvals)])
-title('F Evaluations')
+if plotPANOC
+    figure
+    subplot(2,1,1)
+    plot(panocFminlbfgsData.t_stamps,panocFminlbfgsData.fvals, 'k:', ...
+        'Marker','*', 'MarkerSize', 3, 'MarkerIndices', 1:10:length(panocFminlbfgsData.t_stamps))
+    hold on
+    plot(panocFminlbfgsData.t_stamps,panocFminlbfgsData.fvals_lbfgs, 'r--')
+    plot(panocFminlbfgsData.t_stamps,panocFminlbfgsData.fvals_prox, 'b--')
+    legend('fvals', 'fvals_{lbfgs}', 'fvals_{prox}')
+    ylim([0.9*f(R_true) max(panocFminlbfgsData.fvals)])
+    title('F Evaluations')
 
 
-subplot(2,1,2)
+    subplot(2,1,2)
 
-if ~isAccSemilog
-    plot(panocFminlbfgsData.t_stamps,max(mean(panocFminlbfgsData.M0), 0))
-else
-    semilogy(panocFminlbfgsData.t_stamps, ...
-        max(mean(panocFminlbfgsData.M0(:,:)), ...
-            1./abs(mean(panocFminlbfgsData.M0(:,:)))))
-        
-    ylim([0 100])
-    % semilogy(panocFminlbfgsData.t_stamps, mean(panocFminlbfgsData.M0))
+    if ~isAccSemilog
+        plot(panocFminlbfgsData.t_stamps,max(mean(panocFminlbfgsData.M0), 0))
+    else
+        semilogy(panocFminlbfgsData.t_stamps, ...
+            max(mean(panocFminlbfgsData.M0(:,:)), ...
+                1./abs(mean(panocFminlbfgsData.M0(:,:)))))
+
+        ylim([0 100])
+        % semilogy(panocFminlbfgsData.t_stamps, mean(panocFminlbfgsData.M0))
+    end
+    title('Mean Accuracy')
+    suptitle('PANOC_{FMINLBFGS} Figures')
 end
-title('Mean Accuracy')
-suptitle('PANOC_{FMINLBFGS} Figures')
-
 fprintf("Time Elapsed on PANOC_FMINLBFGS : %.3f\n", t_stamp);
 R_panocfminlbfgs = reshape(x_steps(:,end), dimensions);
 

@@ -9,40 +9,88 @@
     % ADD PATH
 addpath(genpath('..\..\..\Matlab\slra-slra-b1908bf'))
 addpath(genpath('..\..\..\Matlab\slra-opt'))
+clear all
+clc
+close all
+isHardProblems = 1;
 
+% DESIGN PARAMETERS
+    % Experiments: [T, m, p, ell]    
 
-    % DESIGN PARAMETERS
-parameters.m_in    = [3;2];         % Inputs
-parameters.p_out   = [3;2];         % Outputs
-parameters.ell     = [2;2];         % l time-horizon / dynamics                                                                                                  
-parameters.s_noise = [0.1;0.1];     % Noise Variation
-parameters.multiplier = [1;5];      % Multiplies base amount of samples to generate
-complexities = 1;
-% complexities = length(parameters.m_in);
+%     [7500 5 2 1]; ...
+if isHardProblems
+    experiments = ...
+        [[2500 5 5 2]; ...
+        [6305 3 3 1]; ...
+        [9600 4 4 1]];
+%         [[60 1 1 1]; ...
+%         [7500 1 2 1]; ...
+%         
+%         [9600 4 4 1]; ...
+%         [90 5 3 1]; ...
+%         [801 1 1 2]; ...
+%         [867 3 3 1]; ...
+%         [1000 1 1 5]; ...
+%         [1247 3 6 1]; ...
+%         [720 2 2 2]; ...
+%         [729 3 3 2]];
+else
+    experiments = [[60 1 1 1]; ...
+        [100 1 1 2]]; 
+%     ...
+%         [100 1 1 5]; ...
+%         [180 2 2 2]];
+end
+
+useT = 1;
+parameters.m_in       = experiments(:,2);      % Inputs
+parameters.p_out      = experiments(:,3);      % Outputs
+parameters.ell        = experiments(:,4);      % l time-horizon / dynamics                                                                                                  
+parameters.T          = experiments(:,1);      % Multiplies base amount of samples to generate
+parameters.s_noise = 0.1*ones(length(parameters.m_in));  % Noise Variation
+parameters.multiplier = 2*ones(length(parameters.m_in)); % Multiplies base amount of samples to generate
+% parameters.m_in    = [2;3;2];         % Inputs
+% parameters.p_out   = [1;3;2];         % Outputs
+% parameters.ell     = [1;2;2];         % l time-horizon / dynamics                                                                                                  
+% parameters.s_noise = [0.1;0.1;0.1];     % Noise Variation
+% parameters.multiplier = [5;1;2];      % Multiplies base amount of samples to generate
+
+complexities = length(parameters.m_in);
+% complexities = 1;
+Mthreshold   = 76;
 
 
 for cmplx_iter = 1:complexities
-
+beep
 clc
-clearvars -except cmplx_iter complexities parameters statsTable
+clearvars -except cmplx_iter complexities parameters statsTable Mthreshold useT
 randn('seed', 0), rand('seed', 0), warning off
 
 %%
 clc
+% close all
     % DESIGN PARAMETERS
 m_in       = parameters.m_in(cmplx_iter);       % Inputs
 p_out      = parameters.p_out(cmplx_iter);      % Outputs
 ell        = parameters.ell(cmplx_iter);        % l time-horizon / dynamics                                                                                                  
 s_noise    = parameters.s_noise(cmplx_iter);    % Noise Variation
 multiplier = parameters.multiplier(cmplx_iter); % Multiplies base amount of samples to generate
+T          = parameters.T(cmplx_iter);          % Samples to generate
 
 M_ident = 0;
-while M_ident <= 75
+while mean(M_ident) <= Mthreshold
         % GENERATE RANDOM SYSTEM
-    [n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m_in, p_out, ell, s_noise, multiplier);
-
+    if useT 
+        [n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m_in, p_out, ell, s_noise, multiplier, T);
+    else
+        [n, q, T, sys0, u0, y0, w0, u, y, w] = generate_random_sys(m_in, p_out, ell, s_noise, multiplier);
+    end
+    statsTable.m_in(cmplx_iter)  = m_in;
+    statsTable.p_out(cmplx_iter) = p_out; 
+    statsTable.ell(cmplx_iter)   = ell; 
+    statsTable.T(cmplx_iter)     = T;
     statsTable.complexities(cmplx_iter) = T*m_in*p_out;
-    fprintf('Running for Complexity: %d\n\n', T*m_in*p_out);
+    fprintf('Running for T = %d, Complexity: %d\n\n', T, T*m_in*p_out);
         % SLRA Solver Options    
     opt_oe.exct = 1:m_in;      % fixed inputs = output error identification
     use_c = 1;
@@ -58,12 +106,17 @@ while M_ident <= 75
     opt_mo.method = 'reg';
 
         % IDENT
-    % profile on
-    % profiler_data = profile('info');
-    %   GET IDENT SOLUTION
+        % GET IDENT SOLUTION
     % tic, sysh_ident = ident(w, m, ell, opt_oe); t_ident = toc;
     tic, [sysh_ident, info_ident, wh_ident, xini_ident] = ident_custom(w, m_in, ell, opt_oe); t_ident = toc;
-    %   GET KUNG REALIZATION SOLUTION
+
+        % GET M IDENT
+    getMident = 0;
+    if getMident
+        tic, [syshM_ident, infoM_ident, whM_ident, xiniM_ident] = ident_custom(w, m_in, ell, opt_mo); t_Mident = toc;
+    end
+
+        % GET KUNG REALIZATION SOLUTION
     tic, sysh_kung = w2h2ss(w, m_in, n); t_kung = toc;
 
 
@@ -80,7 +133,7 @@ while M_ident <= 75
     % How close is KUNG REALIZATION system to initial system
     fprintf('Kung Realization: \n');
     M_kung = sys_comparison(u0, y0, sysh_kung, 0, t_kung);
-    if M_ident <= 75
+    if mean(M_ident) <= Mthreshold
         clc
         fprintf('REPEAT\n');
     end
@@ -311,33 +364,37 @@ fprintf('slra has been initiated, proceed to optimization algos\n')
 isCloseAll   = 0;
 runALM       = 0;
 runFMINCON   = 1;
-visualizeOption = 2;  % 0 - No visualize, 1 - dataVisualize, 2 - dataVisualizeComplexities
-isAccSemilog = 1;  % =1 For Plot accuracy is semilogy graph
-
+visualizeOption = 3;  % 0 - No visualize, 1 - dataVisualize, 2 - dataVisualizeComplexities, 3 - aggregates
+isAccSemilog    = 1;  % =1 For Plot accuracy is semilogy graph
+maxComplexity   = 8;
 tic_everything = tic;
 
-    % GD
-
+    % GRADIENT DESCENT
 fprintf('\n\nInitiate GD Algorithms\n');
-selectGDs = [3 4];
+selectGDs       = [3 4];
+dspLvlgd        = 'off';
+
 GDescMain
 
-% cmplx_iter = 2;
+info_ident.t_ident = t_ident;
+if exist('info_ident'),  statsTable.slra(cmplx_iter)      = info_ident;             end
 if exist('gdData'),      statsTable.gd_simple(cmplx_iter) = get_time(gdData);       end
 if exist('gdManoptData'),statsTable.gd_manopt(cmplx_iter) = get_time(gdManoptData); end
 if exist('gdProjData'),  statsTable.gd_proj(cmplx_iter)   = get_time(gdProjData);   end
 if exist('gdRegData'),   statsTable.gd_reg(cmplx_iter)    = get_time(gdRegData);    end
 % gd_t for 1st : statsTable.gd_simple(1).t
 
-    % panoc / fminlbfgs
+    % PANOC / FMINLBFGS
 fprintf('\n\nInitiate PANOC / FMINLBFGS Algorithms\n');
-panoc_lbfgs
+plotPANOC     = 0;
+panoc_lbfgs  % PANOC SIMPLE
 statsTable.panoclbfgs(cmplx_iter) = get_time(panocLbfgsData);
 
-panoc_fminlbfgs
+panoc_fminlbfgs  % PANOC FMINLBFGS
 statsTable.panocfminlbfgs(cmplx_iter) = get_time(panocFminlbfgsData);
 
-custom_fminlbfgs
+plotFMINLBFGS = 0;
+custom_fminlbfgs  % FMINLBFGSs
 statsTable.fminlbfgs_simple(cmplx_iter) = get_time(fminlbfgsData_simple);
 statsTable.fminlbfgs_prox(cmplx_iter)   = get_time(fminlbfgsData_prox);
     
@@ -356,7 +413,11 @@ end
 if runFMINCON
     fprintf('\n\nInitiate fmincon Algorithms\n');
     selectFmincons = [2];
+    maxComplexity  = ceil(sqrt(maxComplexity));
+
     fminconTests
+    statsTable.fmincon(cmplx_iter)   = get_time(fminconData_slraVSslra);
+ 
 end
 
 t_everything = toc(tic_everything);
@@ -366,6 +427,8 @@ if visualizeOption == 1
     dataVisualize
 elseif visualizeOption == 2
     dataVisualizeComplexities
+elseif visualizeOption == 3
+    dataVisualizeAggregates
 end
 %% DELETE OBJ
 slra_mex_obj('delete', obj);
