@@ -38,7 +38,7 @@ rho_Mult    = 5;
 
 maxItersBase = 15;
 
-maxComplexity = 5;
+%maxComplexity = 5;
 
 maxIters     = ceil(maxItersBase * ...
     min((statsTable.complexities(cmplx_iter) / 500),maxComplexity) / 5)*5;

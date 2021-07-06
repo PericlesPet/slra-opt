@@ -26,7 +26,7 @@ problem_lm.objective = LM_obj_reg;
 problem_lm.x0 = x0;
 
 % %% FminLBFGS Params
-maxComplexity               = 15;
+%maxComplexity               = 15;
 fminlbfgs_iterationsBase    = 400;
 fminlbfgs_iterations        = ceil(fminlbfgs_iterationsBase * ...
     min((statsTable.complexities(cmplx_iter) / 500)^1.5,maxComplexity) / 100)*100;

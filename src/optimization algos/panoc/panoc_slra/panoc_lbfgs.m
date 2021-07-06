@@ -4,7 +4,7 @@ if isCloseAll == 1
     close all
     clc
 end
-maxComplexity       = 15;
+%maxComplexity       = 15;
 number_of_stepsBase = 600;
 number_of_steps     = ceil(number_of_stepsBase * ...
     min((statsTable.complexities(cmplx_iter) / 500)^1.5,maxComplexity) / 100)*100;
