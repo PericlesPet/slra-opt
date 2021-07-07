@@ -108,7 +108,9 @@ function [logdata, dataOptId, f_log, minf_log] = GDescProj(gdInput, opt, R_slram
             %% Condition + Print
             % logdata
             if strcmp(dspLvl, 'iter')
-                fprintf('ITERATION: %d, minF = %f, id = %d, t_stamp = %f \n', i, min_f, id, logdata.t_stamps(id));
+                if (mod(i-1,gdInput.dspFreq) == 0)
+                    fprintf('ITERATION: %d, minF = %f, id = %d, t_stamp = %f \n', i, min_f, id, logdata.t_stamps(id));
+                end
             end
             minf_log(id) = min_f;
             if (id >= 2 && extCond)

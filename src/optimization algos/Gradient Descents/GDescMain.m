@@ -8,7 +8,10 @@ gdInput.extCond     = 0; % Use Exit condition to stop iterations
 gdInput.obj         = obj; 
 gdInput.sysAccuracy = sysAccuracy;
 gdInput.Ropt        = R_slramex;
+if ~exist('dspLvlgd'),  dspLvlgd  = 'iter';end
+if ~exist('dspFreqgd'), dspFreqgd = 100;end
 gdInput.dspLvl = dspLvlgd;
+gdInput.dspFreq = dspFreqgd;
 
 if ~exist('selectGDs'), selectGDs = 1:4; end
 

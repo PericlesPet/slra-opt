@@ -12,34 +12,34 @@ addpath(genpath('..\..\..\Matlab\slra-opt'))
 clear all
 clc
 close all
-isHardProblems = 1;
+
+selectProblemsDifficulty = 2;  %Problems: 1 - Easy, 2 - Moderate/Hard, 3 - Really Hard 
 
 % DESIGN PARAMETERS
-    % Experiments: [T, m, p, ell]    
-%     [7500 5 2 1]; ...
-if isHardProblems
+    % Experiments: [T, m_in, p_out, ell]    
+switch selectProblemsDifficulty 
+    case 1
     experiments = ...
-        [[9600 4 4 1]];
-%         [[6305 3 3 1]; ...
-%         [[2500 5 5 2]; ...
-%         [[60 1 1 1]; ...
-%         [7500 1 2 1]; ...
-%         
-%         [9600 4 4 1]; ...
-%         [90 5 3 1]; ...
-%         [801 1 1 2]; ...
-%         [867 3 3 1]; ...
-%         [1000 1 1 5]; ...
-%         [1247 3 6 1]; ...
-%         [720 2 2 2]; ...
-%         [729 3 3 2]];
-else
-    experiments = [[60 1 1 1]; ...
-        [100 1 1 2]]; 
-%     ...
-%         [100 1 1 5]; ...
-%         [180 2 2 2]];
+        [[60 1 1 1]; ...
+        [100 1 1 2] ...
+        [100 1 1 5]; ...
+        [180 2 2 2]];
+    case 2
+    experiments = ...
+        [[90 5 3 1]; ...
+        [801 1 1 2]; ...
+        [1000 1 1 5]; ...
+        [867 3 3 1]; ...
+        [720 2 2 2]; ...
+        [729 3 3 2]];
+    case 3
+    experiments = ...
+        [[60 1 1 1]; ...
+        [7500 1 2 1]; ...
+        [1247 3 6 1]; ...
+        [2500 5 5 2]];
 end
+
 
 useT = 1;
 parameters.m_in       = experiments(:,2);      % Inputs
@@ -56,7 +56,7 @@ parameters.multiplier = 2*ones(length(parameters.m_in)); % Multiplies base amoun
 
 complexities = length(parameters.m_in);
 % complexities = 1;
-Mthreshold   = 76;
+Mthreshold   = 80;
 
 
 for cmplx_iter = 1:complexities
@@ -371,8 +371,8 @@ tic_everything = tic;
     % GRADIENT DESCENT
 fprintf('\n\nInitiate GD Algorithms\n');
 selectGDs       = [3 4];
-dspLvlgd        = 'off';
-
+dspLvlgd        = 'iter';
+dspFreqgd       = 2000;
 GDescMain
 
 info_ident.t_ident = t_ident;
@@ -386,12 +386,15 @@ if exist('gdRegData'),   statsTable.gd_reg(cmplx_iter)    = get_time(gdRegData);
     % PANOC / FMINLBFGS
 fprintf('\n\nInitiate PANOC / FMINLBFGS Algorithms\n');
 plotPANOC     = 0;
+fprintf('\nPANOC:\n');
 panoc_lbfgs  % PANOC SIMPLE
 statsTable.panoclbfgs(cmplx_iter) = get_time(panocLbfgsData);
 
+fprintf('\nPANOC + FMINLBFGS:\n');
 panoc_fminlbfgs  % PANOC FMINLBFGS
 statsTable.panocfminlbfgs(cmplx_iter) = get_time(panocFminlbfgsData);
 
+fprintf('\nFMINLBFGS (Simple + Prox):\n');
 plotFMINLBFGS = 0;
 custom_fminlbfgs  % FMINLBFGSs
 statsTable.fminlbfgs_simple(cmplx_iter) = get_time(fminlbfgsData_simple);
@@ -410,10 +413,9 @@ end
 
     % matlab's fmincon for verification
 if runFMINCON
-    fprintf('\n\nInitiate fmincon Algorithms\n');
+    fprintf('\n\nInitiate FMINCON Tests\n');
     selectFmincons = [2];
     maxComplexity  = ceil(sqrt(maxComplexity));
-
     fminconTests
     statsTable.fmincon(cmplx_iter)   = get_time(fminconData_slraVSslra);
  
