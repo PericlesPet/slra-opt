@@ -1,13 +1,11 @@
 ## Dependencies
 Download the following and place them in folders adjacent to this repository:  
 1. [slra](https://github.com/slra/slra "SLRA Git Repository")  
-2. [ManOpt](https://github.com/NicolasBoumal/manopt "ManOpt Git Repository")  
-3. [Matlab version](https://www.mathworks.com/help/matlab/release-notes.html "Matlab Release Notes"): R2018a (MATLAB 9.4), February 23, 2018  
+2. [Matlab version](https://www.mathworks.com/help/matlab/release-notes.html "Matlab Release Notes"): R2018a (MATLAB 9.4), February 23, 2018  
 
 Example folder structure: 
 >       folder/
 >>      slra-opt/
->>      Manopt_6.0/manopt/
 >>      slra-master/
               
 ## Instructions
