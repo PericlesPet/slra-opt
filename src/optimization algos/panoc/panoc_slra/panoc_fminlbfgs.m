@@ -4,10 +4,18 @@ if isCloseAll == 1
     close all
     clc
 end
-%maxComplexity       = 15;
-number_of_stepsBase = 300;
-number_of_steps     = ceil(number_of_stepsBase * ...
+plotPANOC = 0;
+if ~exist('plotPANOC'), plotPANOC = 1; end
+if ~exist('maxComplexity')
+    number_of_steps = 300;
+    isAccSemilog = 0;
+else
+    number_of_stepsBase = 300;
+    number_of_steps     = ceil(number_of_stepsBase * ...
     min((statsTable.complexities(cmplx_iter) / 500)^1.5,maxComplexity) / 100)*100;
+end
+
+%maxComplexity       = 15;
 
 printFreq       = 100;
 max_number_of_steps_backtracking=8;
@@ -93,7 +101,8 @@ for interation_index=1:number_of_steps
                 case 1      %%% NORMAL ONE      --- NOTE: CONDITION2 IS MAX(-0.1 * CONDITION1, ...)  
                     condition1           = FBE( potential_x,gamma,beta_safety_value,f,df,g,proxg)  ;
                     condition2_first     = FBE( x,gamma,beta_safety_value,f,df,g,proxg);
-                    condition2_second    = max(-0.1 * condition1, -sigma*norm(step_prox/gamma,2)^2);
+                    condition2_second    = max(-0.05 * condition1, -sigma*norm(step_prox/gamma,2)^2);
+                    %condition2_second    = -sigma*norm(step_prox/gamma,2)^2;
                 case 2      %%% BASED ON LBFGS AND PROX VALUES
 %                     condition1           = FBE( potential_x,gamma,beta_safety_value,f,df,g,proxg)  ;
                     condition1           = fval_lbfgs;
@@ -209,78 +218,98 @@ if plotPANOC
 end
 fprintf("Time Elapsed on PANOC_FMINLBFGS : %.3f\n", t_stamp);
 R_panocfminlbfgs = reshape(x_steps(:,end), dimensions);
+%% plot the convergence rate
+clear fbeHigherCond
+[condition_xIndices, fbeLowCond, fbeHighCond] = FBE_ConditionProcessing(condition_array, 1, 4);
+% [condition_xIndices, fbeLowCond, fbeHighCond, fbeHigherCond] = FBE_ConditionProcessing(condition_array, 1, 4, 2);
+if ~exist('fbeHigherCond'), fbeHigherCond = fbeHighCond;end
 
-% [condition_xIndices, fbeLowCond, fbeHighCond] = FBE_ConditionProcessing(condition_array, 1, 4);
-[condition_xIndices, fbeLowCond, fbeHighCond, fbeHigherCond] = FBE_ConditionProcessing(condition_array, 1, 4, 2);
 % stiefConstraint(R_panoc)
 % f_evals
 % f_lbfgs_evals
 % bcktrckingSteps
-
-% %% plot the convergence rate
-% figure(1);clf;
-% subplot(2,1,1)
-% plot(taus);
+f_evals       = panocFminlbfgsData.fvals;
+f_prox_evals  = panocFminlbfgsData.fvals_prox;
+f_lbfgs_evals = panocFminlbfgsData.fvals_lbfgs;
+t_stampsPanoc = panocFminlbfgsData.t_stamps;
+secondaryPlot = 1;
+if secondaryPlot
+%     figure(1);clf;
+%     subplot(2,1,1)
+%     plot(taus);
 % 
-% % figure(2);clf;
-% subplot(2,1,2)
-% plot(f_evals)    
-% % % %%
-% % % subplot_x = 2;
-% % % subplot_y = 1;
-% % % 
-% % % figure;
-% % % for subplot_1 = 1
-% % %     subplot(subplot_x ,subplot_y, subplot_1)
-% % %     plot(f_evals, 'ko', 'MarkerSize', 2)
-% % %     hold on
-% % %     plot(f_lbfgs_evals, '-.')
-% % %     plot(f_prox_evals, '--')
-% % %     plot(f_opt*ones(size(f_lbfgs_evals)))
-% % %     legend('f evals', 'f lbfgs evals', 'f prox evals', 'optimal f (ground truth)')
-% % % end
-% % % 
-% % % for subplot_2 = 2
-% % %     subplot(subplot_x, subplot_y, subplot_2)
-% % %     plot(f_evals, 'ko', 'MarkerSize', 2)
-% % %     hold on
-% % %     plot(f_lbfgs_evals, '-.')
-% % %     plot(f_prox_evals, '--')
-% % % %     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r')
-% % %     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r', condition_xIndices, fbeHigherCond, '--k')
-% % %     plot(f_opt*ones(size(f_lbfgs_evals)))
-% % %     legend('f evals', 'f lbfgs evals', 'f prox evals', 'fbe low', 'fbe high', 'fbe higher', 'optimal f (ground truth)')
-% % % end
-% % % 
-% % % %
-% % % figure
-% % % for subplot_3 = 1
-% % %     subplot(subplot_x, subplot_y, subplot_3)
-% % %     hold on
-% % %     plot(gammas)
-% % %     legend('gammas')
-% % % end
-% % % 
-% % % for subplot_4 = 2
-% % %     subplot(subplot_x, subplot_y, subplot_4)
-% % %     plot(f_evals, 'ko', 'MarkerSize', 2)
-% % %     hold on
-% % % %     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r')
-% % %     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r', condition_xIndices, fbeHigherCond, '--k')
-% % %     legend('f evals', 'fbe low', 'fbe high', 'fbe higher')
-% % % end
-% % % 
-% % % 
-% % % 
-% % % %%
-% % % figure;
-% % % plot(f_evals, 'o', 'MarkerSize', 2, 'MarkerFaceColor','b')
-% % % hold on
-% % % plot(condition_array(1,:))
-% % % plot(condition_array(2,:))
-% % % legend('f evals', 'fbe 1', 'fbe 2')
-% % % % f(Rh)
-% % % 
-% % % 
-% % % % figure(2);clf;
-% plot(x_steps(1,2:end)./x_steps(1,1:end-1));
+%     figure(2);clf;
+%     subplot(2,1,2)
+%     plot(f_evals)    
+    %%
+    subplot_x = 2;
+    subplot_y = 1;
+% 
+%     figure;
+% %     for subplot_1 = 1
+% %         subplot(subplot_x ,subplot_y, subplot_1)
+% %         plot(f_evals, 'ko', 'MarkerSize', 2)
+% %         hold on
+% %         plot(f_lbfgs_evals, '-.')
+% %         plot(f_prox_evals, '--')
+% %         plot(f_opt*ones(size(f_lbfgs_evals)))
+% %         legend('f evals', 'f lbfgs evals', 'f prox evals', 'optimal f (ground truth)')
+% %     end
+% 
+%     for subplot_2 = 1
+%         subplot(subplot_x-1, subplot_y, subplot_2)
+%         plot(f_evals, 'ko', 'MarkerSize', 2)
+%         hold on
+%         plot(f_lbfgs_evals, '-.')
+%         plot(f_prox_evals, '--')
+%     %     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r')
+%         plot(condition_xIndices, fbeLowCond, 'b', ...
+%             condition_xIndices, fbeHighCond, 'r', ...
+%             condition_xIndices, fbeHigherCond, '--k')
+%         plot(f_opt*ones(size(f_lbfgs_evals)))
+%         legend('f evals', 'f lbfgs evals', 'f prox evals', 'fbe high', 'fbe lowest', 'fbe low', 'optimal f (ground truth)')
+%     end
+
+    %
+    figure
+    for subplot_3 = 1
+        subplot(subplot_x, subplot_y, subplot_3)
+        hold on
+        plot(t_stampsPanoc, gammas)
+        legend('gammas')
+        title('Values of Stepsize Over Time')
+        xlabel('t (seconds)')
+    end
+    set(gca,'YScale','log')
+    
+    for subplot_4 = 2
+        subplot(subplot_x, subplot_y, subplot_4)
+        plot(t_stampsPanoc, f_evals, 'ko', 'MarkerSize', 2)
+        hold on
+    %     plot(condition_xIndices, fbeLowCond, 'b', condition_xIndices, fbeHighCond, 'r')
+        plot(t_stampsPanoc(condition_xIndices), fbeLowCond, 'b', ...
+            t_stampsPanoc(condition_xIndices), fbeHighCond, 'r')
+%             condition_xIndices, fbeHigherCond, '--k')
+%             condition_xIndices, fbeHighCond, 'r', ...
+%         legend('f evals', 'FBE_{k+1}', 'FBE_{k} - C(1/gamma^{3})')
+        legend('f evals', 'fminlbfgs steps', 'prox steps')
+        title('Values of F(x) and FBE Conditions Over Time')
+        xlabel('t (seconds)')
+
+    end
+suptitle('FBE Condition Instability')
+% plot(max(min(1./abs(fbeHighCond), 1), fbeHighCond))
+    
+
+    %%
+%     figure;
+%     plot(f_evals, 'o', 'MarkerSize', 2, 'MarkerFaceColor','b')
+%     hold on
+%     plot(condition_array(1,:))
+%     plot(condition_array(2,:))
+%     legend('f evals', 'fbe 1', 'fbe 2')
+%     % f(Rh)
+%     % figure(2);clf;
+%     plot(x_steps(1,2:end)./x_steps(1,1:end-1));
+
+end

@@ -13,7 +13,7 @@ clear all
 clc
 close all
 
-selectProblemsDifficulty = 2;  %Problems: 1 - Easy, 2 - Moderate/Hard, 3 - Really Hard 
+selectProblemsDifficulty = 3;  %Problems: 1 - Easy, 2 - Moderate/Hard, 3 - Really Hard 
 
 % DESIGN PARAMETERS
     % Experiments: [T, m_in, p_out, ell]    
@@ -21,7 +21,7 @@ switch selectProblemsDifficulty
     case 1
     experiments = ...
         [[60 1 1 1]; ...
-        [100 1 1 2] ...
+        [100 1 1 2]; ...
         [100 1 1 5]; ...
         [180 2 2 2]];
     case 2
@@ -60,6 +60,7 @@ Mthreshold   = 80;
 
 
 for cmplx_iter = 1:complexities
+
 beep
 clc
 clearvars -except cmplx_iter complexities parameters statsTable Mthreshold useT
@@ -107,8 +108,11 @@ while mean(M_ident) <= Mthreshold
         % IDENT
         % GET IDENT SOLUTION
     % tic, sysh_ident = ident(w, m, ell, opt_oe); t_ident = toc;
-    tic, [sysh_ident, info_ident, wh_ident, xini_ident] = ident_custom(w, m_in, ell, opt_oe); t_ident = toc;
 
+    getIdent = 1;
+    if getIdent
+        tic, [sysh_ident, info_ident, wh_ident, xini_ident] = ident_custom(w, m_in, ell, opt_oe); t_ident = toc;
+    end
         % GET M IDENT
     getMident = 0;
     if getMident
@@ -126,9 +130,11 @@ while mean(M_ident) <= Mthreshold
     % How Close is initial system to noisy [u,y] ??
     fprintf('Ground Truth + Noise: \n');
     M_noise = sys_comparison(u, y, sys0, 0);
-    % How close is SLRA IDENTIFIED system to initial system
-    fprintf('Ident system: \n');
-    M_ident = sys_comparison(u0, y0, sysh_ident, 0, t_ident);
+    if getIdent
+        % How close is SLRA IDENTIFIED system to initial system
+        fprintf('Ident system: \n');
+        M_ident = sys_comparison(u0, y0, sysh_ident, 0, t_ident);
+    end
     % How close is KUNG REALIZATION system to initial system
     fprintf('Kung Realization: \n');
     M_kung = sys_comparison(u0, y0, sysh_kung, 0, t_kung);
@@ -137,6 +143,8 @@ while mean(M_ident) <= Mthreshold
         fprintf('REPEAT\n');
     end
 end
+
+continue 
 
 fprintf('First Part of SLRA data generation COMPLETE\n')
 

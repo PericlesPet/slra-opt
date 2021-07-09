@@ -4,10 +4,16 @@ if isCloseAll == 1
     close all
     clc
 end
-%maxComplexity       = 15;
-number_of_stepsBase = 600;
-number_of_steps     = ceil(number_of_stepsBase * ...
-    min((statsTable.complexities(cmplx_iter) / 500)^1.5,maxComplexity) / 100)*100;
+if ~exist('plotPANOC'), plotPANOC = 1; end
+if ~exist('maxComplexity') 
+    maxComplexity = 10; 
+    number_of_steps = 600;     
+    isAccSemilog = 0;
+else
+    number_of_stepsBase = 600;
+    number_of_steps     = ceil(number_of_stepsBase * ...
+        min((statsTable.complexities(cmplx_iter) / 500)^1.5,maxComplexity) / 100)*100;
+end
 
 printFreq       = 100;
 dimensions      = size(Rini);
